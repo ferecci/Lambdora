@@ -1,8 +1,8 @@
 from astmodule import Expr, Abstraction, Variable
 from dataclasses import dataclass
-from typing import Callable, Union
+from typing import Callable, Union, List
 
-Value = Union[int, str, bool, 'Closure', 'Builtin', 'Pair', 'Nil']
+Value = Union[int, str, bool, 'Closure', 'Builtin', 'Pair', 'Nil', 'Macro']
 
 @dataclass
 class Closure:
@@ -18,6 +18,11 @@ class Builtin:
 class Pair:
     head: Value
     tail: Value
+
+@dataclass
+class Macro:
+    params: List[str]
+    body: Expr
 
 class Nil:
     def __repr__(self):

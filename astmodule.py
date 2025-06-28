@@ -33,3 +33,9 @@ class IfExpr(Expr):
     cond: Expr
     then_branch: Expr
     else_branch: Expr
+
+@dataclass
+class DefMacroExpr(Expr):
+    name: str
+    params: List[str]
+    body: Expr

@@ -1,6 +1,5 @@
 from typing import Dict
-from values import Builtin, Value, Pair, nil
-from printer import lambPrint
+from values import Builtin, Value, Pair, nil, valueToString
 
 def lambMakeTopEnv() -> dict[str, Value]:
     env: Dict[str, Value] = {}
@@ -52,10 +51,10 @@ def lambMakeTopEnv() -> dict[str, Value]:
     env['and'] = Builtin(and_fn)
     env['or']  = Builtin(or_fn)
 
-    # Printing
+    # Printing (always prints the pretty-printed value, returns nil)
     def pr(x: Value) -> Value:
-        print(lambPrint(x))
-        return x
+        print(valueToString(x))
+        return nil
     env['print'] = Builtin(pr)
 
     # List ADT

@@ -7,7 +7,8 @@ from parser import lambParse, lambParseAll
 from evaluator import lambEval
 from printer import lambPrint
 from builtinsmodule import lambMakeTopEnv
-from values import valueToString
+from values import valueToString, nil
+from macro import lambMacroExpand
 
 env = lambMakeTopEnv()
 
@@ -25,7 +26,10 @@ load_std()
 def runExpression(source: str):
     tokens = lambTokenize(source)
     expr = lambParse(tokens)
-    result = lambEval(expr, env)
+    exp = lambMacroExpand(expr, env)
+    if exp is None:
+        return "<macro defined>"
+    result = lambEval(exp, env)
     return result
 
 def runFile(filename: str):
@@ -34,7 +38,12 @@ def runFile(filename: str):
     tokens = lambTokenize(source)
     exprs = lambParseAll(tokens)
     for expr in exprs:
-        result = lambEval(expr, env)
+        exp = lambMacroExpand(expr, env)
+        if exp is None:
+            continue
+        result = lambEval(exp, env)
+        if result is nil:
+            continue
         if not (isinstance(result, int) or isinstance(result, bool) or isinstance(result, str)):
             print(valueToString(result))
 
@@ -48,6 +57,7 @@ if __name__ == "__main__":
                 if source.strip() == "exit":
                     break
                 result = runExpression(source)
-                print("=>", valueToString(result))
+                if result is not nil:
+                    print("=>", valueToString(result))
             except Exception as e:
                 print("Error:", e)

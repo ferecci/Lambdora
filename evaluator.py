@@ -48,12 +48,17 @@ def lambEval(expr: Expr, env: dict[str, Value]) -> Value:
         env[expr.name] = None
         # Evaluate the right-hand side with that placeholder in scope
         value = lambEval(expr.value, env)
-        # If it’s a Closure, inject its own name into its env for self-calls
+        # If it's a Closure, inject its own name into its env for self-calls
         if isinstance(value, Closure):
             value.env[expr.name] = value
         # Update the binding
         env[expr.name] = value
         return f"<defined {expr.name}>"
+
+    elif isinstance(expr, DefMacroExpr):
+        # Store macro definition in environment
+        env[expr.name] = Macro(expr.params, expr.body)
+        return f"<defined macro {expr.name}>"
 
     else:
         raise TypeError(f"Unknown expression type: {expr}")

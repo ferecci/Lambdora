@@ -46,6 +46,22 @@ def parseExpression(tokens: List[str], i: int):
             if tokens[i] != ')':
                 raise SyntaxError("Expected ')' after if")
             return IfExpr(cond, then_b, else_b), i + 1
+        
+        elif tokens[i] == 'defmacro':
+            i += 1
+            name = tokens[i]; i += 1
+            # parse parameter list
+            if tokens[i] != '(':
+                raise SyntaxError("Expected '(' after defmacro name")
+            i += 1
+            params = []
+            while tokens[i] != ')':
+                params.append(tokens[i]); i += 1
+            i += 1
+            body, i = parseExpression(tokens, i)
+            if tokens[i] != ')':
+                raise SyntaxError("Expected ')' after defmacro body")
+            return DefMacroExpr(name, params, body), i + 1
 
         else:
             func, i = parseExpression(tokens, i)
