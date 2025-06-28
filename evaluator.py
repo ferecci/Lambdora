@@ -34,15 +34,24 @@ def lambEval(expr: Expr, env: dict[str, Value]) -> Value:
                 raise TypeError("Cannot apply non-function value")
 
         return result
-    
+
     elif isinstance(expr, IfExpr):
-        cond_val = lambEval(expr.cond, env)
-        if not isinstance(cond_val, bool):
-            raise TypeError("Condition in 'if' must be boolean")
-        return lambEval(expr.then_branch, env) if cond_val else lambEval(expr.else_branch, env)
+        cond = lambEval(expr.cond, env)
+        if not isinstance(cond, bool):
+            raise TypeError("Condition in 'if' must be a Python bool")
+        return (lambEval(expr.then_branch, env)
+                if cond else
+                lambEval(expr.else_branch, env))
     
     elif isinstance(expr, DefineExpr):
+        # For recursion: make a placeholder so that closures can refer to 'name'
+        env[expr.name] = None
+        # Evaluate the right-hand side with that placeholder in scope
         value = lambEval(expr.value, env)
+        # If it’s a Closure, inject its own name into its env for self-calls
+        if isinstance(value, Closure):
+            value.env[expr.name] = value
+        # Update the binding
         env[expr.name] = value
         return f"<defined {expr.name}>"
 

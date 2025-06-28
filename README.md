@@ -23,3 +23,5 @@ For now, we support:
 # Running The REPL
 
 * 'exit' in the terminal exits the application.
+
+-> building lists based on modern set theory: start with nil, cons on that

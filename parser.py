@@ -19,15 +19,6 @@ def parseExpression(tokens: List[str], i: int):
                 raise SyntaxError("Expected ')' after lambda body")
             return Abstraction(param, body), i + 1
 
-        elif tokens[i] == 'if':
-            i += 1
-            cond, i = parseExpression(tokens, i)
-            then_branch, i = parseExpression(tokens, i)
-            else_branch, i = parseExpression(tokens, i)
-            if tokens[i] != ')':
-                raise SyntaxError("Expected ')' after if expression")
-            return IfExpr(cond, then_branch, else_branch), i + 1
-
         elif tokens[i] == 'let':
             i += 1
             var = tokens[i]
@@ -46,6 +37,15 @@ def parseExpression(tokens: List[str], i: int):
             if tokens[i] != ')':
                 raise SyntaxError("Expected ')' after define expression")
             return DefineExpr(name, value_expr), i + 1
+
+        elif tokens[i] == 'if':
+            i += 1
+            cond, i = parseExpression(tokens, i)
+            then_b, i = parseExpression(tokens, i)
+            else_b, i = parseExpression(tokens, i)
+            if tokens[i] != ')':
+                raise SyntaxError("Expected ')' after if")
+            return IfExpr(cond, then_b, else_b), i + 1
 
         else:
             func, i = parseExpression(tokens, i)

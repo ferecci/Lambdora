@@ -24,12 +24,12 @@ class Application(Expr):
     args: List[Expr]
 
 @dataclass
+class DefineExpr(Expr):
+    name: str
+    value: Expr
+
+@dataclass
 class IfExpr(Expr):
     cond: Expr
     then_branch: Expr
     else_branch: Expr
-
-@dataclass
-class DefineExpr(Expr):
-    name: str
-    value: Expr
