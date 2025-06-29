@@ -19,7 +19,6 @@ def load_std():
     for expr in exprs:
         raw = lambEval(expr, env, is_tail=True)
         trampoline(raw)
-load_std()
 
 def runExpression(source: str):
     tokens = lambTokenize(source)
@@ -47,6 +46,7 @@ def runFile(filename: str):
             print(valueToString(result))
 
 if __name__ == "__main__":
+    load_std()
     if len(sys.argv) > 1:
         runFile(sys.argv[1])
     else:
