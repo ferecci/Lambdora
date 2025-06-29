@@ -1,3 +1,5 @@
+"""Macro substitution and expansion utilities."""
+
 from astmodule import *
 from typing import Dict
 from values import Macro, Value
@@ -27,6 +29,7 @@ def lambMacroSubstitute(expr: Expr, mapping: Dict[str, Expr]) -> Expr:
     return expr
 
 def lambMacroExpand(expr: Expr, env: Dict[str, Value]) -> Expr:
+    """Expand macros in ``expr`` using definitions stored in ``env``."""
     # Handle defmacro
     if isinstance(expr, DefMacroExpr):
         env[expr.name] = Macro(expr.params, expr.body)

@@ -1,8 +1,11 @@
+"""Parsing logic converting tokens into AST nodes."""
+
 from astmodule import *
 from typing import List
 import re
 
-def parseExpression(tokens: List[str], i: int):
+def parseExpression(tokens: List[str], i: int) -> Tuple[Expr, int]:
+    """Parse an expression from ``tokens`` starting at index ``i``."""
     if i >= len(tokens):
         raise SyntaxError("Unexpected EOF while parsing")
     token = tokens[i]

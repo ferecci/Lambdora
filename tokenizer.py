@@ -1,6 +1,9 @@
+"""Tokenization utilities for Lambdora source code."""
+
 import re
 
 def lambTokenize(source: str) -> list[str]:
+    """Return a list of tokens extracted from the given source string."""
     tokens = []
 
     # Strip comments

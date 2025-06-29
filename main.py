@@ -1,3 +1,5 @@
+"""Command line interface and REPL for the Lambdora interpreter."""
+
 import sys
 from os.path import join, dirname
 from tokenizer import lambTokenize
@@ -19,7 +21,6 @@ def load_std():
     for expr in exprs:
         raw = lambEval(expr, env, is_tail=True)
         trampoline(raw)
-load_std()
 
 def runExpression(source: str):
     tokens = lambTokenize(source)
@@ -41,12 +42,11 @@ def runFile(filename: str):
             continue
         raw = lambEval(exp, env, is_tail=True)
         result = trampoline(raw)
-        if result is nil:
-            continue
-        if not (isinstance(result, int) or isinstance(result, bool) or isinstance(result, str)):
+        if result is not nil:
             print(valueToString(result))
 
 if __name__ == "__main__":
+    load_std()
     if len(sys.argv) > 1:
         runFile(sys.argv[1])
     else:
