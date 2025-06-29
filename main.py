@@ -40,9 +40,7 @@ def runFile(filename: str):
             continue
         raw = lambEval(exp, env, is_tail=True)
         result = trampoline(raw)
-        if result is nil:
-            continue
-        if not (isinstance(result, int) or isinstance(result, bool) or isinstance(result, str)):
+        if result is not nil:
             print(valueToString(result))
 
 if __name__ == "__main__":
