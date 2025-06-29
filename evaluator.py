@@ -1,7 +1,10 @@
+"""Expression evaluation for Lambdora."""
+
 from astmodule import *
 from values import *
 
 def lambEval(expr: Expr, env: dict[str, Value], is_tail: bool = False) -> Value:
+    """Evaluate ``expr`` in ``env`` with optional tail-call optimization."""
     # Variables
     if isinstance(expr, Variable):
         if expr.name in env:

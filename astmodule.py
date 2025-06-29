@@ -1,3 +1,5 @@
+"""AST node definitions for the Lambdora language."""
+
 from dataclasses import dataclass
 from typing import Union, List
 
