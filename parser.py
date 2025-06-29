@@ -1,7 +1,7 @@
 """Parsing logic converting tokens into AST nodes."""
 
 from astmodule import *
-from typing import List
+from typing import List, Tuple
 import re
 
 def parseExpression(tokens: List[str], i: int) -> Tuple[Expr, int]:
