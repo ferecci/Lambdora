@@ -21,8 +21,8 @@ def lambTokenize(source: str) -> list[str]:
             i += 1
             continue
 
-        # Identifiers
-        if char.isalpha():
+        # Identifiers (alpha or underscores)
+        if char.isalpha() or char == '_':
             start = i
             while i < len(source) and (source[i].isalnum() or source[i] == '_'):
                 i += 1

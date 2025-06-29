@@ -1,64 +1,75 @@
 from astmodule import *
 from values import *
 
-def lambEval(expr: Expr, env: dict[str, Value]) -> Value:
+def lambEval(expr: Expr, env: dict[str, Value], is_tail: bool = False) -> Value:
+    # Variables
     if isinstance(expr, Variable):
         if expr.name in env:
             return env[expr.name]
         else:
             raise NameError(f"Unbound variable: {expr.name}")
 
-    elif isinstance(expr, Literal):
+    # Literals
+    if isinstance(expr, Literal):
         if expr.value.isdigit():
             return int(expr.value)
         return expr.value
 
-    elif isinstance(expr, Abstraction):
+    # Abstraction
+    if isinstance(expr, Abstraction):
         return Closure(expr.param, expr.body, env.copy())
 
-    elif isinstance(expr, Application):
-        func_val = lambEval(expr.func, env)
-        args = [lambEval(arg, env) for arg in expr.args]
+    # Application
+    if isinstance(expr, Application):
+        def retire() -> Value:
+            func_val = lambEval(expr.func, env)
+            args = [lambEval(arg, env) for arg in expr.args]
+            return applyFunc(func_val, args, is_tail)
 
-        result = func_val
-        for arg in args:
-            if isinstance(result, Closure):
-                new_env = result.env.copy()
-                new_env[result.param] = arg
-                result = lambEval(result.body, new_env)
+        if is_tail:
+            return Thunk(retire)
+        else:
+            return retire()
 
-            elif isinstance(result, Builtin):
-                result = result.func(arg)
-
-            else:
-                raise TypeError("Cannot apply non-function value")
-
-        return result
-
-    elif isinstance(expr, IfExpr):
+    # If-expression
+    if isinstance(expr, IfExpr):
         cond = lambEval(expr.cond, env)
         if not isinstance(cond, bool):
-            raise TypeError("Condition in 'if' must be a Python bool")
-        return (lambEval(expr.then_branch, env)
-                if cond else
-                lambEval(expr.else_branch, env))
-    
-    elif isinstance(expr, DefineExpr):
-        # For recursion: make a placeholder so that closures can refer to 'name'
+            raise TypeError("Condition in 'if' must be Python bool")
+        branch = expr.then_branch if cond else expr.else_branch
+        return lambEval(branch, env, is_tail)
+
+    # Define-expression
+    if isinstance(expr, DefineExpr):
         env[expr.name] = None
-        # Evaluate the right-hand side with that placeholder in scope
         value = lambEval(expr.value, env)
-        # If it's a Closure, inject its own name into its env for self-calls
         if isinstance(value, Closure):
             value.env[expr.name] = value
-        # Update the binding
         env[expr.name] = value
         return f"<defined {expr.name}>"
 
-    elif isinstance(expr, DefMacroExpr):
-        # Store macro definition in environment
-        env[expr.name] = Macro(expr.params, expr.body)
-        return f"<defined macro {expr.name}>"
+    raise TypeError(f"Unknown expression type: {expr}")
+    
+def trampoline(result: Value) -> Value:
+    while isinstance(result, Thunk):
+        result = result.func()
+    return result
 
-    else:
-        raise TypeError(f"Unknown expression type: {expr}")
+def applyFunc(func_val: Value, args: list[Value], is_tail: bool = False) -> Value:
+    if isinstance(func_val, Closure):
+        result = func_val
+        for i, arg in enumerate(args):
+            new_env = result.env.copy()
+            new_env[result.param] = arg
+            # If this is the last argument and we're in tail position, use tail call optimization
+            is_last_arg = (i == len(args) - 1)
+            result = lambEval(result.body, new_env, is_tail and is_last_arg)
+            if not isinstance(result, Closure):
+                return result
+        return result
+    if isinstance(func_val, Builtin):
+        result = func_val
+        for arg in args:
+            result = result.func(arg)
+        return result
+    raise TypeError("Cannot apply non-function value")

@@ -2,7 +2,7 @@ from astmodule import Expr, Abstraction, Variable
 from dataclasses import dataclass
 from typing import Callable, Union, List
 
-Value = Union[int, str, bool, 'Closure', 'Builtin', 'Pair', 'Nil', 'Macro']
+Value = Union[int, str, bool, 'Closure', 'Builtin', 'Pair', 'Nil', 'Macro', 'Thunk']
 
 @dataclass
 class Closure:
@@ -24,32 +24,18 @@ class Macro:
     params: List[str]
     body: Expr
 
+@dataclass
+class Thunk:
+    func: Callable[[], Value]
+
 class Nil:
     def __repr__(self):
         return "nil"
 
 nil = Nil()
 
-def isChurchTrue(c: Closure) -> bool:
-    return (
-        isinstance(c.body, Abstraction) and
-        isinstance(c.body.body, Variable) and
-        c.body.body.name == c.param
-    )
-
-def isChurchFalse(c: Closure) -> bool:
-    return (
-        isinstance(c.body, Abstraction) and
-        isinstance(c.body.body, Variable) and
-        c.body.body.name == c.body.param
-    )
-
 def valueToString(val: Value) -> str:
     if isinstance(val, Closure):
-        if isChurchTrue(val):
-            return "true"
-        if isChurchFalse(val):
-            return "false"
         return f"<closure λ{val.param}. …>"
     elif isinstance(val, bool):
         return 'true' if val else 'false'

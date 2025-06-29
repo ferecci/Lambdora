@@ -1,19 +1,26 @@
-(define id (λx. x))
-(define const (λx. (λy. x)))
+; std.lamb — Lambdora Standard Library
 
-(define isZero (λn. (= n 0)))
+; === Basic helpers ===
+(define id       (λx. x))
+(define const    (λx. (λy. x)))
 
-(define double (λx. (+ x x)))
-(define triple (λx. (+ x (double x))))
+; === Predicates ===
+(define isZero   (λn. (= n 0)))
 
-; Factorial
-(define fact
-  (λn.
-    (if (= n 0)
-        1
-        (* n (fact (- n 1))))))
+; === Arithmetic shortcuts ===
+(define double   (λx. (+ x x)))
+(define triple   (λx. (+ x (double x))))
 
-; Fibonacci
+; === Factorial (tail-recursive) ===
+(define factHelper
+  (λi. (λacc.
+    (if (= i 0)
+        acc
+        (factHelper (- i 1) (* acc i))))))
+
+(define fact (λn. (factHelper n 1)))
+
+; === Fibonacci ===
 (define fib
   (λn.
     (if (< n 2)
@@ -21,37 +28,62 @@
         (+ (fib (- n 1))
            (fib (- n 2))))))
 
-; Mapping
-(define map
-  (λf.
-    (λlst.
-      (if (isNil lst)
-          nil
-          (cons
-            (f (head lst))
-            ((map f) (tail lst)))))))
-
-(define filter
-  (λpred.
-    (λlst.
-      (if (isNil lst)
-          nil
-          (let h (head lst)
-            (let t ((filter pred) (tail lst))
-              (if (pred h)
-                  (cons h t)
-                  t)))))))
-
-(define foldl
+; === Fold and variants ===
+(define foldlHelper
   (λf. (λacc. (λlst.
     (if (isNil lst)
         acc
-        ((foldl f) (f acc (head lst)) (tail lst)))))))
+        (foldlHelper f (f acc (head lst)) (tail lst)))))))
+
+(define foldl
+  (λf. (λacc. (λlst.
+    (foldlHelper f acc lst)))))
+
+; === Basic list operations ===
+(define reverse
+  (λlst. ((foldl (λacc. (λx. (cons x acc))) nil) lst)))
+
+; === Range generation (tail-recursive) ===
+(define rangeHelper
+  (λi. (λacc.
+    (if (< i 0)
+        acc
+        (rangeHelper (- i 1) (cons i acc))))))
+
+(define range
+  (λn.
+    (rangeHelper (- n 1) nil)))
+
+; === List operations ===
+(define map
+  (λf. (λlst.
+    (if (isNil lst)
+        nil
+        (cons (f (head lst))
+              ((map f) (tail lst)))))))
+
+(define filter
+  (λpred. (λlst.
+    (if (isNil lst)
+        nil
+        (let h (head lst)
+          (let t ((filter pred) (tail lst))
+            (if (pred h)
+                (cons h t)
+                t)))))))
 
 (define length
-  (λlst.
-    ((foldl (λn. (λm. (+ n 1))) 0) lst)))
+  (λlst. ((foldl (λn. (λ_. (+ n 1))) 0) lst)))
 
-(define reverse
-  (λlst.
-    ((foldl (λacc. (λx. (cons x acc))) nil) lst)))
+(define sum
+  (λlst. ((foldl (λa. (λb. (+ a b))) 0) lst)))
+
+; === List generation ===
+(define ones
+  (λn.
+    ((foldl (λacc. (λ_. (cons 1 acc))) nil) (range n))))
+
+; === Simple sums of ones ===
+(define sumOnes
+  (λn.
+    ((foldl (λa. (λb. (+ a b))) 0) (ones n))))

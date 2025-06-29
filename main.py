@@ -1,10 +1,8 @@
 import sys
-
 from os.path import join, dirname
-
 from tokenizer import lambTokenize
 from parser import lambParse, lambParseAll
-from evaluator import lambEval
+from evaluator import lambEval, trampoline
 from printer import lambPrint
 from builtinsmodule import lambMakeTopEnv
 from values import valueToString, nil
@@ -19,8 +17,8 @@ def load_std():
     tokens = lambTokenize(source)
     exprs = lambParseAll(tokens)
     for expr in exprs:
-        lambEval(expr, env)
-
+        raw = lambEval(expr, env, is_tail=True)
+        trampoline(raw)
 load_std()
 
 def runExpression(source: str):
@@ -29,8 +27,8 @@ def runExpression(source: str):
     exp = lambMacroExpand(expr, env)
     if exp is None:
         return "<macro defined>"
-    result = lambEval(exp, env)
-    return result
+    raw = lambEval(exp, env, is_tail=True)
+    return trampoline(raw)
 
 def runFile(filename: str):
     with open(filename, encoding='utf-8') as f:
@@ -41,7 +39,8 @@ def runFile(filename: str):
         exp = lambMacroExpand(expr, env)
         if exp is None:
             continue
-        result = lambEval(exp, env)
+        raw = lambEval(exp, env, is_tail=True)
+        result = trampoline(raw)
         if result is nil:
             continue
         if not (isinstance(result, int) or isinstance(result, bool) or isinstance(result, str)):
