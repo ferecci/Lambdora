@@ -1,0 +1,7 @@
+from main import runExpression
+from values import nil
+
+def test_when_macro():
+    runExpression("(defmacro when (cond body) (if cond body nil))")
+    assert runExpression("(when true 42)") == 42
+    assert runExpression("(when false 42)") is nil

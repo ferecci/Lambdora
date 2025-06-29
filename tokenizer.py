@@ -16,7 +16,7 @@ def lambTokenize(source: str) -> list[str]:
             i += 1
             continue
 
-        if char in '().λ+-*/=<>':
+        if char in '().λ+-*/%=<>':
             tokens.append(char)
             i += 1
             continue
@@ -35,6 +35,18 @@ def lambTokenize(source: str) -> list[str]:
             while i < len(source) and source[i].isdigit():
                 i += 1
             tokens.append(source[start:i])
+            continue
+
+        # String literals
+        if char == '"':
+            i += 1
+            start = i
+            while i < len(source) and source[i] != '"':
+                i += 1
+            if i >= len(source):
+                raise SyntaxError("Unterminated string literal")
+            tokens.append('"' + source[start:i] + '"')
+            i += 1
             continue
 
         raise SyntaxError(f"Unexpected character: {char}")

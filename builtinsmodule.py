@@ -23,6 +23,10 @@ def lambMakeTopEnv() -> dict[str, Value]:
     env['*'] = Builtin(mul)
     env['/'] = Builtin(div)
 
+    def mod(x: int) -> Value:
+        return Builtin(lambda y: x % y)
+    env['%'] = Builtin(mod)
+
     # Equality
     def eq(x: int) -> Value:
         return Builtin(lambda y: x == y)
