@@ -1,3 +1,5 @@
+"""Command line interface and REPL for the Lambdora interpreter."""
+
 import sys
 from os.path import join, dirname
 from tokenizer import lambTokenize

@@ -1,3 +1,5 @@
+"""Utilities for pretty-printing Lambdora expressions."""
+
 from astmodule import *
 
 def lambPrint(expr: Expr) -> str:

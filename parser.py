@@ -1,8 +1,11 @@
+"""Parsing logic converting tokens into AST nodes."""
+
 from astmodule import *
 from typing import List
 import re
 
 def parseExpression(tokens: List[str], i: int):
+    """Parse an expression from ``tokens`` starting at index ``i``."""
     token = tokens[i]
 
     if token == '(':
