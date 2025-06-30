@@ -10,7 +10,7 @@ def lambEval(expr: Expr, env: dict[str, Value], is_tail: bool = False) -> Value:
         if expr.name in env:
             return env[expr.name]
         else:
-            raise NameError(f"Unbound variable: {expr.name}")
+            raise NameError(f"unbound variable: {expr.name}")
 
     # Literals
     if isinstance(expr, Literal):
@@ -38,7 +38,7 @@ def lambEval(expr: Expr, env: dict[str, Value], is_tail: bool = False) -> Value:
     if isinstance(expr, IfExpr):
         cond = lambEval(expr.cond, env)
         if not isinstance(cond, bool):
-            raise TypeError("Condition in 'if' must be Python bool")
+            raise TypeError("condition in 'if' must be a boolean")
         branch = expr.then_branch if cond else expr.else_branch
         return lambEval(branch, env, is_tail)
 
@@ -75,4 +75,4 @@ def applyFunc(func_val: Value, args: list[Value], is_tail: bool = False) -> Valu
         for arg in args:
             result = result.func(arg)
         return result
-    raise TypeError("Cannot apply non-function value")
+    raise TypeError("tried to apply a non-function value")

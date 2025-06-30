@@ -9,8 +9,18 @@ from .printer import lambPrint
 from .builtinsmodule import lambMakeTopEnv
 from .values import valueToString, nil
 from .macro import lambMacroExpand
+import readline
 
 env = lambMakeTopEnv()
+
+def format_error(e: Exception) -> str:
+    if isinstance(e, NameError):
+        return str(e).replace("Unbound variable", "unbound variable")
+    if isinstance(e, SyntaxError):
+        return str(e).replace("SyntaxError", "").strip()
+    if isinstance(e, TypeError):
+        return str(e).replace("TypeError", "").strip()
+    return str(e)
 
 def load_std():
     std_path = join(dirname(abspath(__file__)), "stdlib", "std.lamb")
@@ -53,10 +63,15 @@ if __name__ == "__main__":
         while True:
             try:
                 source = input("λ> ")
-                if source.strip() == "exit":
+                if source.strip() in ("exit", "quit"):
+                    print("Goodbye.")
                     break
                 result = runExpression(source)
                 if result is not nil:
                     print("=>", valueToString(result))
+            except (EOFError, KeyboardInterrupt):
+                print("\nGoodbye.")
+                break
             except Exception as e:
-                print("Error:", e)
+                print("Error:", format_error(e))
+

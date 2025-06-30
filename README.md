@@ -1,29 +1,88 @@
-6/26/2025
+# 🐑 Lambdora &nbsp; [![codecov](https://codecov.io/gh/ferecci/Lambdora/graph/badge.svg?token=ORV38HH7J7)](https://codecov.io/gh/ferecci/Lambdora)
 
-# Lexicon
+**Lambdora** is a minimal functional programming language inspired by Lisp and lambda calculus, implemented in Python. It supports first-class functions, lexical closures, macros, tail-call optimization, and a simple REPL — all in fewer than 1000 lines of code.
 
-For now, we support:
+> A tiny lambda-powered language with big functional features.
 
-* (, )
-* λ (lambda character)
-* . (dot separates param from body)
-* Identifiers (like x, f, foo)
-* Whitespace is ignored
-* Semicolons ; and everything after them on the line are comments
-* 'if' expressions
-* 'let' and 'define' expressions
+---
 
-# Grammar
+## ✨ Features
 
-* expr      ::= atom | application | abstraction
-* atom      ::= identifier | ( expr )
-* abstraction ::= ( λ identifier . expr )
-* application ::= ( expr expr+ )
+- First-class lambdas (`λx. ...`) and currying  
+- Lexical scoping with closures  
+- Built-in types: numbers, booleans, pairs/lists, nil  
+- Powerful macro system (`defmacro`)  
+- Tail-call optimization via trampoline  
+- Minimal standard library (`std.lamb`)  
+- REPL and file runner  
+- Testable and extensible structure
 
-# Running The REPL
+---
 
-* 'exit' in the terminal exits the application.
+## 📦 Getting Started
 
--> building lists based on modern set theory: start with nil, cons on that
+### ✅ Requirements
+- Python 3.10+
 
-[![codecov](https://codecov.io/gh/ferecci/Lambdora/graph/badge.svg?token=ORV38HH7J7)](https://codecov.io/gh/ferecci/Lambdora)
+### ▶️ Run the REPL
+
+```
+python -m main.py
+```
+
+### 📂 Run a program
+
+```
+python -m main.py examples/fizzbuzz.lamb
+```
+
+---
+
+## 🧪 Example
+
+```lisp
+(define inc (λx. (+ x 1)))
+(define twice (λf. (λx. (f (f x)))))
+((twice inc) 3)      ; => 5
+
+(defmacro when (cond body)
+  (if cond body nil))
+
+(when true (print "Hello, macros!")) ; => Hello, macros!
+```
+
+---
+
+## 📁 Project Structure
+
+```
+lambdora/
+├── tokenizer.py       # Lexer
+├── parser.py          # S-expression to AST
+├── astmodule.py       # AST node classes
+├── evaluator.py       # Core evaluator with TCO
+├── builtinsmodule.py  # Built-in functions and values
+├── macro.py           # Macro expansion logic
+├── values.py          # Runtime value representations
+├── printer.py         # Pretty-printer
+├── main.py            # REPL and file runner
+└── stdlib/std.lamb    # Standard library (loaded at launch)
+```
+
+---
+
+## 🛣️ Roadmap
+
+- [x] Core language & REPL
+- [x] Macros
+- [x] Tail-call optimization
+- [ ] `quote` special form
+- [ ] Macro hygiene
+- [ ] Range/loop helpers
+- [ ] LLVM backend (stretch goal)
+
+---
+
+## ⚖️ License
+
+MIT License. Created by Felipe Tancredo (ferecci).
