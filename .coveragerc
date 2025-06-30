@@ -1,0 +1,18 @@
+[run]
+omit =
+    */tests/*
+    */test_*.py
+    */test.py
+    */venv/*
+    */__pycache__/*
+    */main.py
+    */printer.py   
+
+[report]
+exclude_lines =
+    if __name__ == .__main__.:
+    pragma: no cover
+    raise NotImplementedError
+
+[html]
+directory = htmlcov

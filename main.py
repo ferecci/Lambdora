@@ -1,7 +1,7 @@
 """Command line interface and REPL for the Lambdora interpreter."""
 
 import sys
-from os.path import join, dirname
+from os.path import join, dirname, abspath
 from tokenizer import lambTokenize
 from parser import lambParse, lambParseAll
 from evaluator import lambEval, trampoline
@@ -13,7 +13,7 @@ from macro import lambMacroExpand
 env = lambMakeTopEnv()
 
 def load_std():
-    std_path = join(dirname(__file__), "stdlib", "std.lamb")
+    std_path = join(dirname(abspath(__file__)), "stdlib", "std.lamb")
     with open(std_path, encoding='utf-8') as f:
         source = f.read()
     tokens = lambTokenize(source)
