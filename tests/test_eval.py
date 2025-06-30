@@ -39,6 +39,6 @@ def test_deep_tail_fact():
         (define loop 
           (λn. (λacc. 
             (if (= n 0) acc (loop (- n 1) (* acc n))))))
-        ((loop n) 1)))
+        ((loop n) 1))))
     """)
     assert runExpression("(fact 100)") > 0

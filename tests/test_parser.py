@@ -2,6 +2,7 @@ from tokenizer import lambTokenize
 from parser import lambParse
 from astmodule import *
 import pytest
+from main import runExpression
 
 def test_parse_lambda():
     tokens = lambTokenize("(λx. x)")
