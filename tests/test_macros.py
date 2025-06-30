@@ -9,3 +9,7 @@ def test_when_macro():
 def test_macro_fails_gracefully():
     runExpression("(defmacro noop () nil)")
     assert runExpression("(noop)") is nil
+
+def test_macro_with_two_args():
+    runExpression("(defmacro swap (a b) (cons b (cons a nil)))")
+    assert valueToString(runExpression("(swap 1 2)")) == "(2 1)"
