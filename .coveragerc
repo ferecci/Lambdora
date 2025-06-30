@@ -1,8 +1,11 @@
 [run]
+source = .
 omit =
     */tests/*
     */test_*.py
     */test.py
+    */__init__.py
+    */__pycache__/*
     */venv/*
     */__pycache__/*
     */main.py
