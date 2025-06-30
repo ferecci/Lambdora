@@ -1,6 +1,6 @@
 """Parsing logic converting tokens into AST nodes."""
 
-from astmodule import *
+from .astmodule import *
 from typing import List, Tuple
 import re
 

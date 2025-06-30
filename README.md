@@ -25,3 +25,5 @@ For now, we support:
 * 'exit' in the terminal exits the application.
 
 -> building lists based on modern set theory: start with nil, cons on that
+
+[![codecov](https://codecov.io/gh/ferecci/Lambdora/graph/badge.svg?token=ORV38HH7J7)](https://codecov.io/gh/ferecci/Lambdora)

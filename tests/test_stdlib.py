@@ -1,5 +1,5 @@
-from main import runExpression
-from values import valueToString
+from lambdora.main import runExpression
+from lambdora.values import valueToString
 
 def test_list_sum():
     # sum (range 5) = 0 + 1 + 2 + 3 + 4

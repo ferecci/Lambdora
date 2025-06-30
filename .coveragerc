@@ -1,5 +1,6 @@
 [run]
-source = .
+source = lambdora
+branch = True
 omit =
     */tests/*
     */test_*.py
@@ -13,9 +14,11 @@ omit =
 
 [report]
 exclude_lines =
-    if __name__ == .__main__.:
     pragma: no cover
+    if __name__ == .__main__.:
     raise NotImplementedError
+
+show_missing = True
 
 [html]
 directory = htmlcov

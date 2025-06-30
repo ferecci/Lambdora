@@ -1,4 +1,4 @@
-from tokenizer import lambTokenize
+from lambdora.tokenizer import lambTokenize
 
 def test_simple_tokens():
     assert lambTokenize("(λx. x)") == ['(', 'λ', 'x', '.', 'x', ')']

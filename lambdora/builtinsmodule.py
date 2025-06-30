@@ -1,7 +1,7 @@
 """Definitions of built-in functions and the initial environment."""
 
 from typing import Dict
-from values import Builtin, Value, Pair, nil, valueToString
+from .values import Builtin, Value, Pair, nil, valueToString
 
 def lambMakeTopEnv() -> dict[str, Value]:
     """Create the top-level environment with Lambdora built-ins."""

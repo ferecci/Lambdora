@@ -1,4 +1,4 @@
-from main import runExpression
+from lambdora.main import runExpression
 import pytest
 
 def test_simple_add():

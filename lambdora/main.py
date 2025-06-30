@@ -2,13 +2,13 @@
 
 import sys
 from os.path import join, dirname, abspath
-from tokenizer import lambTokenize
-from parser import lambParse, lambParseAll
-from evaluator import lambEval, trampoline
-from printer import lambPrint
-from builtinsmodule import lambMakeTopEnv
-from values import valueToString, nil
-from macro import lambMacroExpand
+from .tokenizer import lambTokenize
+from .parser import lambParse, lambParseAll
+from .evaluator import lambEval, trampoline
+from .printer import lambPrint
+from .builtinsmodule import lambMakeTopEnv
+from .values import valueToString, nil
+from .macro import lambMacroExpand
 
 env = lambMakeTopEnv()
 

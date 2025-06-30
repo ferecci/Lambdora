@@ -1,8 +1,8 @@
 """Macro substitution and expansion utilities."""
 
-from astmodule import *
+from .astmodule import *
 from typing import Dict
-from values import Macro, Value
+from .values import Macro, Value
 
 def lambMacroSubstitute(expr: Expr, mapping: Dict[str, Expr]) -> Expr:
     if isinstance(expr, Variable):
