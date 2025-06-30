@@ -33,12 +33,20 @@ def test_head_on_non_pair():
         runExpression("(head 42)")
 
 def test_deep_tail_fact():
-    runExpression("""
-    (define fact 
-      (λn. 
-        (define loop 
-          (λn. (λacc. 
-            (if (= n 0) acc (loop (- n 1) (* acc n))))))
-        ((loop n) 1))))
-    """)
-    assert runExpression("(fact 100)") > 0
+    # Tail-recursive loop function
+    runExpression(
+        "(define loop "
+        "  (λn. (λacc. "
+        "    (if (= n 0) acc (loop (- n 1) (* acc n)))"
+        "  ))"
+        ")"
+    )
+    # Define fact in terms of loop
+    runExpression(
+        "(define fact "
+        "  (λn. ((loop n) 1))"
+        ")"
+    )
+    result = runExpression("(fact 100)")
+    assert isinstance(result, int)
+    assert result > 0
