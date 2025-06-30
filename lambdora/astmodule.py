@@ -41,3 +41,15 @@ class DefMacroExpr(Expr):
     name: str
     params: List[str]
     body: Expr
+
+@dataclass
+class QuoteExpr(Expr):
+    value: Expr
+
+@dataclass
+class QuasiquoteExpr(Expr):
+    value: Expr
+
+@dataclass
+class UnquoteExpr(Expr):
+    value: Expr

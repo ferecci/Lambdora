@@ -90,6 +90,27 @@ def parseExpression(tokens: List[str], i: int) -> Tuple[Expr, int]:
                 raise SyntaxError("Expected ')' after defmacro body")
             return DefMacroExpr(name, params, body), i + 1
 
+        elif tokens[i] == 'quasiquote':
+            i += 1
+            body, i = parseExpression(tokens, i)
+            if tokens[i] != ')':
+                raise SyntaxError("Expected ')' after quasiquote")
+            return QuasiquoteExpr(body), i + 1
+
+        elif tokens[i] == 'unquote':
+            i += 1
+            body, i = parseExpression(tokens, i)
+            if tokens[i] != ')':
+                raise SyntaxError("Expected ')' after unquote")
+            return UnquoteExpr(body), i + 1
+
+        elif tokens[i] == 'quote':
+            i += 1
+            quoted, i = parseExpression(tokens, i)
+            if i >= len(tokens) or tokens[i] != ')':
+                raise SyntaxError("Expected ')' after quote")
+            return QuoteExpr(quoted), i + 1
+
         else:
             func, i = parseExpression(tokens, i)
             args = []
@@ -99,6 +120,18 @@ def parseExpression(tokens: List[str], i: int) -> Tuple[Expr, int]:
             if i >= len(tokens):
                 raise SyntaxError("Unexpected EOF: missing ')'")
             return Application(func, args), i + 1
+
+    elif token == "`":  # Quasiquote shortcut
+        quoted, i = parseExpression(tokens, i + 1)
+        return QuasiquoteExpr(quoted), i
+
+    elif token == ",":
+        unquoted, i = parseExpression(tokens, i + 1)
+        return UnquoteExpr(unquoted), i
+
+    elif token == "'":
+        quoted, i = parseExpression(tokens, i + 1)
+        return QuoteExpr(quoted), i
 
     elif token.isnumeric():
         return Literal(token), i + 1

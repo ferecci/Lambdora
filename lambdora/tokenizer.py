@@ -19,7 +19,7 @@ def lambTokenize(source: str) -> list[str]:
             i += 1
             continue
 
-        if char in '().λ+-*/%=<>':
+        if char in '().λ+-*/%=<>\'':
             tokens.append(char)
             i += 1
             continue

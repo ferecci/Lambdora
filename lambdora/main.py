@@ -9,7 +9,6 @@ from .printer import lambPrint
 from .builtinsmodule import lambMakeTopEnv
 from .values import valueToString, nil
 from .macro import lambMacroExpand
-import readline
 
 env = lambMakeTopEnv()
 

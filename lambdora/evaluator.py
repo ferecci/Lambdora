@@ -51,6 +51,14 @@ def lambEval(expr: Expr, env: dict[str, Value], is_tail: bool = False) -> Value:
         env[expr.name] = value
         return f"<defined {expr.name}>"
 
+    # Quasiquote    
+    if isinstance(expr, QuasiquoteExpr):
+        return evalQuasiquote(expr.value, env)
+
+    # Quote (do not evaluate)
+    if isinstance(expr, QuoteExpr):
+        return expr.value
+
     raise TypeError(f"Unknown expression type: {expr}")
     
 def trampoline(result: Value) -> Value:
@@ -76,3 +84,27 @@ def applyFunc(func_val: Value, args: list[Value], is_tail: bool = False) -> Valu
             result = result.func(arg)
         return result
     raise TypeError("tried to apply a non-function value")
+
+def evalQuasiquote(expr: Expr, env: dict[str, Value]) -> Expr:
+    if isinstance(expr, UnquoteExpr):
+        return lambEval(expr.value, env)
+    if isinstance(expr, Application):
+        return Application(
+            evalQuasiquote(expr.func, env),
+            [evalQuasiquote(arg, env) for arg in expr.args]
+        )
+    if isinstance(expr, Abstraction):
+        return Abstraction(expr.param, evalQuasiquote(expr.body, env))
+    if isinstance(expr, IfExpr):
+        return IfExpr(
+            evalQuasiquote(expr.cond, env),
+            evalQuasiquote(expr.then_branch, env),
+            evalQuasiquote(expr.else_branch, env)
+        )
+    if isinstance(expr, DefineExpr):
+        return DefineExpr(expr.name, evalQuasiquote(expr.value, env))
+    if isinstance(expr, DefMacroExpr):
+        return DefMacroExpr(expr.name, expr.params, evalQuasiquote(expr.body, env))
+    if isinstance(expr, QuasiquoteExpr):
+        return QuasiquoteExpr(evalQuasiquote(expr.value, env))
+    return expr

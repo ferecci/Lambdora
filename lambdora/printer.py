@@ -12,5 +12,11 @@ def lambPrint(expr: Expr) -> str:
     elif isinstance(expr, Application):
         parts = [lambPrint(expr.func)] + [lambPrint(arg) for arg in expr.args]
         return f"({' '.join(parts)})"
+    elif isinstance(expr, QuasiquoteExpr):
+        return f"`({lambPrint(expr.value)})"
+    elif isinstance(expr, UnquoteExpr):
+        return f",({lambPrint(expr.value)})"
+    elif isinstance(expr, QuoteExpr):
+        return f"'({lambPrint(expr.value)})"
     else:
         raise TypeError(f"Unknown expression type: {expr}")
