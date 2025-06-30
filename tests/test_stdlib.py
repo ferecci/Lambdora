@@ -45,3 +45,20 @@ def test_fizzbuzz_sample():
     assert runExpression("(fizzbuzz 5)") == "Buzz"
     assert runExpression("(fizzbuzz 15)") == "FizzBuzz"
     assert runExpression("(fizzbuzz 7)") == 7
+
+def test_when_macro():
+    assert runExpression("(when true 42)") == 42
+    assert runExpression("(when false 42)") is None
+
+def test_unless_macro():
+    assert runExpression("(unless false 42)") == 42
+    assert runExpression("(unless true 42)") is None
+
+def test_let_macro():
+    assert runExpression("(let x 10 (+ x 2))") == 12
+
+def test_and_or_macros():
+    assert runExpression("(and2 true true)") is True
+    assert runExpression("(and2 false true)") is False
+    assert runExpression("(or2 false true)") is True
+    assert runExpression("(or2 false false)") is False

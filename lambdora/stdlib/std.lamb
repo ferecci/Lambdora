@@ -87,3 +87,20 @@
 (define sumOnes
   (λn.
     ((foldl (λa. (λb. (+ a b))) 0) (ones n))))
+
+; === Control-flow macros ===
+(defmacro when   (cond body)       `(if ,cond ,body nil))
+(defmacro unless (cond body)       `(if (not ,cond) ,body nil))
+(defmacro begin  (a b)             `(let __ignore ,a ,b))
+
+; === Short-circuit logic ===
+(defmacro and2 (a b)               `(if ,a ,b false))
+(defmacro or2  (a b)               `(if ,a true ,b))
+
+; === Let-binding macros ===
+(defmacro let  (var val body)      `((λ ,var . ,body) ,val))
+(defmacro let2 (x y xval yval body)
+  `((λ ,x . ((λ ,y . ,body) ,yval)) ,xval))
+
+; === Cond (two branches only for now) ===
+(defmacro cond (a b c d)           `(if ,a ,b (if ,c ,d nil)))

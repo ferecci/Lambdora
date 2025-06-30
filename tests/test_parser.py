@@ -34,3 +34,7 @@ def test_incomplete_if():
 def test_defmacro_missing_parens():
     with pytest.raises(SyntaxError):
         runExpression("(defmacro m x x)")
+
+def test_lambda_requires_dot():
+    with pytest.raises(SyntaxError):
+        runExpression("(λx x)")

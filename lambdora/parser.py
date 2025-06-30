@@ -1,6 +1,6 @@
 """Parsing logic converting tokens into AST nodes."""
 
-from .astmodule import *
+from astmodule import *
 from typing import List, Tuple
 import re
 
@@ -10,6 +10,14 @@ def parseExpression(tokens: List[str], i: int) -> Tuple[Expr, int]:
         raise SyntaxError("Unexpected EOF while parsing")
     token = tokens[i]
 
+    if token == '`':                           # Back-quote
+        expr, j = parseExpression(tokens, i + 1)
+        return QuasiQuoteExpr(expr), j
+
+    if token == ',':                           # Comma
+        expr, j = parseExpression(tokens, i + 1)
+        return UnquoteExpr(expr), j
+
     if token == '(':
         i += 1
         if i >= len(tokens):
@@ -18,6 +26,10 @@ def parseExpression(tokens: List[str], i: int) -> Tuple[Expr, int]:
         if tokens[i] == 'λ':
             i += 1
             if i >= len(tokens): raise SyntaxError("Unexpected EOF after λ")
+            if tokens[i] == ',':
+                i += 1
+                if i >= len(tokens):
+                    raise SyntaxError("Unexpected EOF after ',' in λ")
             param = tokens[i]
             i += 1
             if i >= len(tokens): raise SyntaxError("Unexpected EOF after lambda param")
@@ -93,14 +105,14 @@ def parseExpression(tokens: List[str], i: int) -> Tuple[Expr, int]:
         elif tokens[i] == 'quasiquote':
             i += 1
             body, i = parseExpression(tokens, i)
-            if tokens[i] != ')':
+            if i >= len(tokens) or tokens[i] != ')':
                 raise SyntaxError("Expected ')' after quasiquote")
-            return QuasiquoteExpr(body), i + 1
+            return QuasiQuoteExpr(body), i + 1
 
         elif tokens[i] == 'unquote':
             i += 1
             body, i = parseExpression(tokens, i)
-            if tokens[i] != ')':
+            if i >= len(tokens) or tokens[i] != ')':
                 raise SyntaxError("Expected ')' after unquote")
             return UnquoteExpr(body), i + 1
 
@@ -120,14 +132,6 @@ def parseExpression(tokens: List[str], i: int) -> Tuple[Expr, int]:
             if i >= len(tokens):
                 raise SyntaxError("Unexpected EOF: missing ')'")
             return Application(func, args), i + 1
-
-    elif token == "`":  # Quasiquote shortcut
-        quoted, i = parseExpression(tokens, i + 1)
-        return QuasiquoteExpr(quoted), i
-
-    elif token == ",":
-        unquoted, i = parseExpression(tokens, i + 1)
-        return UnquoteExpr(unquoted), i
 
     elif token == "'":
         quoted, i = parseExpression(tokens, i + 1)

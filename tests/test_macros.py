@@ -72,3 +72,10 @@ def test_macro_expand_abstraction():
     result = lambMacroExpand(abs_expr, {})
     assert isinstance(result, Abstraction)
     assert isinstance(result.body, Application)
+
+def test_gensym_uniqueness():
+    a = runExpression("(gensym)")
+    b = runExpression("(gensym)")
+    assert isinstance(a, str)
+    assert a != b
+    assert a.startswith("__gensym_")

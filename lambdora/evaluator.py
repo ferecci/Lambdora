@@ -1,7 +1,7 @@
 """Expression evaluation for Lambdora."""
 
-from .astmodule import *
-from .values import *
+from astmodule import *
+from values import *
 
 def lambEval(expr: Expr, env: dict[str, Value], is_tail: bool = False) -> Value:
     """Evaluate ``expr`` in ``env`` with optional tail-call optimization."""
@@ -52,8 +52,8 @@ def lambEval(expr: Expr, env: dict[str, Value], is_tail: bool = False) -> Value:
         return f"<defined {expr.name}>"
 
     # Quasiquote    
-    if isinstance(expr, QuasiquoteExpr):
-        return evalQuasiquote(expr.value, env)
+    if isinstance(expr, QuasiQuoteExpr):
+        return evalQuasiquote(expr.expr, env)
 
     # Quote (do not evaluate)
     if isinstance(expr, QuoteExpr):
@@ -86,25 +86,45 @@ def applyFunc(func_val: Value, args: list[Value], is_tail: bool = False) -> Valu
     raise TypeError("tried to apply a non-function value")
 
 def evalQuasiquote(expr: Expr, env: dict[str, Value]) -> Expr:
+    # If we see an unquote, evaluate its contents immediately
     if isinstance(expr, UnquoteExpr):
-        return lambEval(expr.value, env)
+        return lambEval(expr.expr, env)
+
+    # Nested quasiquotes: treat them as data
+    if isinstance(expr, QuasiQuoteExpr):
+        return QuasiQuoteExpr(evalQuasiquote(expr.expr, env))
+
+    # Applications: recursively quasiquote func and args
     if isinstance(expr, Application):
         return Application(
             evalQuasiquote(expr.func, env),
             [evalQuasiquote(arg, env) for arg in expr.args]
         )
+
+    # Lambda bodies: quasiquote inside the body
     if isinstance(expr, Abstraction):
         return Abstraction(expr.param, evalQuasiquote(expr.body, env))
+
+    # If-expressions: quad-tree walk
     if isinstance(expr, IfExpr):
         return IfExpr(
             evalQuasiquote(expr.cond, env),
             evalQuasiquote(expr.then_branch, env),
             evalQuasiquote(expr.else_branch, env)
         )
+
+    # Definitions: quasiquote the value
     if isinstance(expr, DefineExpr):
         return DefineExpr(expr.name, evalQuasiquote(expr.value, env))
+
+    # Macro definitions: quasiquote the body
     if isinstance(expr, DefMacroExpr):
         return DefMacroExpr(expr.name, expr.params, evalQuasiquote(expr.body, env))
-    if isinstance(expr, QuasiquoteExpr):
-        return QuasiquoteExpr(evalQuasiquote(expr.value, env))
+
+    # Literal and Variable and QuoteExpr just pass through
+    # (QuoteExpr should remain as code data)
+    if isinstance(expr, (Literal, Variable, QuoteExpr)):
+        return expr
+
+    # Fallback: leave any other node unchanged
     return expr

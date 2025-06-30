@@ -76,7 +76,7 @@ lambdora/
 - [x] Core language & REPL
 - [x] Macros
 - [x] Tail-call optimization
-- [ ] `quote` special form
+- [x] `quote` special form
 - [ ] Macro hygiene
 - [ ] Range/loop helpers
 - [ ] LLVM backend (stretch goal)

@@ -47,9 +47,9 @@ class QuoteExpr(Expr):
     value: Expr
 
 @dataclass
-class QuasiquoteExpr(Expr):
-    value: Expr
+class QuasiQuoteExpr(Expr):
+    expr: Expr
 
 @dataclass
 class UnquoteExpr(Expr):
-    value: Expr
+    expr: Expr

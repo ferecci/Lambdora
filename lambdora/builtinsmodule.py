@@ -1,7 +1,8 @@
 """Definitions of built-in functions and the initial environment."""
 
 from typing import Dict
-from .values import Builtin, Value, Pair, nil, valueToString
+from values import Builtin, Value, Pair, nil, valueToString
+from itertools import count
 
 def lambMakeTopEnv() -> dict[str, Value]:
     """Create the top-level environment with Lambdora built-ins."""
@@ -92,5 +93,12 @@ def lambMakeTopEnv() -> dict[str, Value]:
     env['tail']  = Builtin(tail_fn)
     env['isNil'] = Builtin(is_nil)
     env['nil']   = nil
+
+    # Macro hygiene
+    _gensym_counter = count()
+    
+    def gensym_fn(_: Value = None) -> Value:
+        return f"__gensym_{next(_gensym_counter)}"
+    env['gensym'] = Builtin(gensym_fn)
 
     return env

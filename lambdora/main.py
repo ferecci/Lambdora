@@ -2,13 +2,14 @@
 
 import sys
 from os.path import join, dirname, abspath
-from .tokenizer import lambTokenize
-from .parser import lambParse, lambParseAll
-from .evaluator import lambEval, trampoline
-from .printer import lambPrint
-from .builtinsmodule import lambMakeTopEnv
-from .values import valueToString, nil
-from .macro import lambMacroExpand
+from tokenizer import lambTokenize
+from parser import lambParse, lambParseAll
+from evaluator import lambEval, trampoline
+from printer import lambPrint
+from builtinsmodule import lambMakeTopEnv
+from values import valueToString, nil
+from macro import lambMacroExpand
+from astmodule import Expr
 
 env = lambMakeTopEnv()
 
@@ -28,7 +29,10 @@ def load_std():
     tokens = lambTokenize(source)
     exprs = lambParseAll(tokens)
     for expr in exprs:
-        raw = lambEval(expr, env, is_tail=True)
+        exp = lambMacroExpand(expr, env)
+        if exp is None:
+            continue
+        raw = lambEval(exp, env, is_tail=True)
         trampoline(raw)
 
 def runExpression(source: str):
@@ -67,7 +71,10 @@ if __name__ == "__main__":
                     break
                 result = runExpression(source)
                 if result is not nil:
-                    print("=>", valueToString(result))
+                    if isinstance(result, Expr):
+                        print("=>", lambPrint(result))
+                    else:
+                        print("=>", valueToString(result))
             except (EOFError, KeyboardInterrupt):
                 print("\nGoodbye.")
                 break
