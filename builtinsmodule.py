@@ -47,14 +47,24 @@ def lambMakeTopEnv() -> dict[str, Value]:
         return not x
     env['not'] = Builtin(not_fn)
 
-    def and_fn(x: bool) -> Value:
+    # Logical AND & OR
+    def and_fn(x: Value) -> Value:
         if not isinstance(x, bool):
             raise TypeError("Expected boolean")
-        return Builtin(lambda y: x and y)
-    def or_fn(x: bool) -> Value:
+        def inner(y: Value) -> Value:
+            if not isinstance(y, bool):
+                raise TypeError("Expected boolean")
+            return x and y
+        return Builtin(inner)
+
+    def or_fn(x: Value) -> Value:
         if not isinstance(x, bool):
             raise TypeError("Expected boolean")
-        return Builtin(lambda y: x or y)
+        def inner(y: Value) -> Value:
+            if not isinstance(y, bool):
+                raise TypeError("Expected boolean")
+            return x or y
+        return Builtin(inner)
     env['and'] = Builtin(and_fn)
     env['or']  = Builtin(or_fn)
 
