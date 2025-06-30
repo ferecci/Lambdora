@@ -1,4 +1,4 @@
-from main import runExpression
+from main import runExpression, valueToString
 from values import nil
 
 def test_when_macro():

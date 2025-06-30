@@ -1,4 +1,5 @@
 import pytest
+from main import runExpression
 
 def test_not_type_error():
     with pytest.raises(TypeError):
