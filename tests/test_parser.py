@@ -8,3 +8,7 @@ def test_parse_lambda():
     assert isinstance(expr, Abstraction)
     assert expr.param == 'x'
     assert isinstance(expr.body, Variable)
+
+def test_unclosed_if():
+    with pytest.raises(SyntaxError):
+        runExpression("(if true 1 2")  # Missing closing paren

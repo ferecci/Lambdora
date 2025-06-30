@@ -39,12 +39,13 @@ htmlcov/
 .tox/
 .coverage
 .coverage.*
-.coveragerc
 .cache
+coverage.xml
 nosetests.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+*.pyc
 
 # Translations
 *.mo

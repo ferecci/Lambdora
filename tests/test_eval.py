@@ -27,3 +27,18 @@ def test_bad_lambda_syntax():
 def test_incomplete_expression():
     with pytest.raises(SyntaxError):
         runExpression("(+ 1")
+
+def test_head_on_non_pair():
+    with pytest.raises(TypeError):
+        runExpression("(head 42)")
+
+def test_deep_tail_fact():
+    runExpression("""
+    (define fact 
+      (λn. 
+        (define loop 
+          (λn acc. 
+            (if (= n 0) acc (loop (- n 1) (* acc n)))))
+        (loop n 1)))
+    """)
+    assert runExpression("(fact 100)") > 0        
