@@ -25,7 +25,7 @@ format:
 
 # Clean up coverage files and build artifacts
 clean:
-	rm -rf .pytest_cache .coverage coverage.xml htmlcov __pycache__ */__pycache__
+	rm -rf .pytest_cache .coverage coverage.xml htmlcov __pycache__ */__pycache__ ruff_report.json
 
 # Run REPL
 run:
