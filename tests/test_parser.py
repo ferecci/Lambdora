@@ -2,7 +2,7 @@ from lambdora.tokenizer import lambTokenize
 from lambdora.parser import lambParse
 from lambdora.astmodule import *
 import pytest
-from lambdora.main import runExpression
+from lambdora.repl import run_expr as runExpression
 
 def test_parse_lambda():
     tokens = lambTokenize("(λx. x)")

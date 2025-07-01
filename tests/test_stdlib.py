@@ -1,5 +1,5 @@
-from lambdora.main import runExpression
-from lambdora.values import valueToString
+from lambdora.repl import run_expr as runExpression
+from lambdora.values import valueToString, nil
 
 def test_list_sum():
     # sum (range 5) = 0 + 1 + 2 + 3 + 4
@@ -48,11 +48,11 @@ def test_fizzbuzz_sample():
 
 def test_when_macro():
     assert runExpression("(when true 42)") == 42
-    assert runExpression("(when false 42)") is None
+    assert runExpression("(when false 42)") is nil
 
 def test_unless_macro():
     assert runExpression("(unless false 42)") == 42
-    assert runExpression("(unless true 42)") is None
+    assert runExpression("(unless true 42)") is nil
 
 def test_let_macro():
     assert runExpression("(let x 10 (+ x 2))") == 12

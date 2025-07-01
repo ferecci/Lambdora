@@ -1,4 +1,5 @@
-from lambdora.main import runExpression, valueToString
+from lambdora.repl import run_expr as runExpression
+from lambdora.values import valueToString
 from lambdora.macro import lambMacroExpand, lambMacroSubstitute
 from lambdora.astmodule import *
 from lambdora.values import Macro, nil

@@ -1,4 +1,4 @@
-from lambdora.main import runExpression
+from lambdora.repl import run_expr as runExpression
 from lambdora.astmodule import Literal, Application, Variable
 
 def test_quote_literal():

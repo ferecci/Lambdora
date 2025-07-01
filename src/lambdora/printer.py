@@ -1,6 +1,6 @@
 """Utilities for pretty-printing Lambdora expressions."""
 
-from astmodule import *
+from .astmodule import *
 
 def lambPrint(expr: Expr) -> str:
     if isinstance(expr, Variable):

@@ -1,7 +1,7 @@
 """Expression evaluation for Lambdora."""
 
-from astmodule import *
-from values import *
+from .astmodule import *
+from .values import *
 
 def lambEval(expr: Expr, env: dict[str, Value], is_tail: bool = False) -> Value:
     """Evaluate ``expr`` in ``env`` with optional tail-call optimization."""
@@ -82,13 +82,18 @@ def applyFunc(func_val: Value, args: list[Value], is_tail: bool = False) -> Valu
         result = func_val
         for arg in args:
             result = result.func(arg)
+        # Handle 0-argument builtins
+        if len(args) == 0:
+            return result.func()
         return result
     raise TypeError("tried to apply a non-function value")
 
 def evalQuasiquote(expr: Expr, env: dict[str, Value]) -> Expr:
-    # If we see an unquote, evaluate its contents immediately
+    # If we see an unquote, evaluate its contents immediately and embed the value
     if isinstance(expr, UnquoteExpr):
-        return lambEval(expr.expr, env)
+        value = lambEval(expr.expr, env)
+        # Return the evaluated value directly - it will be embedded in the AST
+        return value
 
     # Nested quasiquotes: treat them as data
     if isinstance(expr, QuasiQuoteExpr):

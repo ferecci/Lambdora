@@ -1,10 +1,10 @@
 """Runtime value representations used by the interpreter."""
 
-from astmodule import Expr, Abstraction, Variable
+from .astmodule import Expr, Abstraction, Variable
 from dataclasses import dataclass
 from typing import Callable, Union, List
 
-Value = Union[int, str, bool, 'Closure', 'Builtin', 'Pair', 'Nil', 'Macro', 'Thunk']
+Value = Union[int, str, bool, 'Closure', 'Builtin', 'Pair', 'Nil', 'Macro', 'Thunk', Expr]
 
 @dataclass
 class Closure:
@@ -60,5 +60,9 @@ def valueToString(val: Value) -> str:
         return f"({' '.join(elems)})"
     elif val is nil:
         return "nil"
+    elif isinstance(val, Expr):
+        # Handle AST nodes as values (code as data)
+        from .printer import lambPrint
+        return lambPrint(val)
     else:
         return f"<unknown value: {val}>"

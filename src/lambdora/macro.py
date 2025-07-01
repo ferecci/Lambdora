@@ -1,8 +1,8 @@
 """Macro substitution and expansion utilities."""
 
-from astmodule import *
+from .astmodule import *
 from typing import Dict
-from values import Macro, Value
+from .values import Macro, Value
 
 def _qq_sub(tmpl: Expr, mapping: dict[str, Expr]) -> Expr:
     if isinstance(tmpl, UnquoteExpr):
@@ -50,8 +50,6 @@ def lambMacroSubstitute(expr: Expr, mapping: dict[str, Expr]) -> Expr:
 def lambMacroExpand(expr: Expr, env: Dict[str, Value]) -> Expr:
     """Expand macros in ``expr`` using definitions stored in ``env``."""
 
-    if isinstance(expr, QuasiQuoteExpr):
-        return qqWalk(expr.expr, env)
     # Handle defmacro
     if isinstance(expr, DefMacroExpr):
         env[expr.name] = Macro(expr.params, expr.body)
@@ -79,6 +77,9 @@ def lambMacroExpand(expr: Expr, env: Dict[str, Value]) -> Expr:
         if new_body is None:
             new_body = expr.body
         return Abstraction(expr.param, new_body)
+    # Handle quasiquote that results from macro expansion
+    if isinstance(expr, QuasiQuoteExpr):
+        return qqWalk(expr.expr, env)
     return expr
 
 def qqWalk(expr: Expr, env: Dict[str, Value]) -> Expr:

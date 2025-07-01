@@ -1,6 +1,6 @@
 # Basic settings
 PYTHON = python
-PROJECT = lambdora
+PROJECT = src/lambdora
 TEST_DIR = tests
 
 # Run all tests with coverage
@@ -29,6 +29,10 @@ clean:
 
 # Run REPL
 run:
-	$(PYTHON) lambdora/main.py
+	cd src && $(PYTHON) -m lambdora.repl
 
-.PHONY: test fasttest coverage lint format clean repl
+# Run a file
+run-file:
+	cd src && $(PYTHON) -m lambdora.runner
+
+.PHONY: test fasttest coverage lint format clean run run-file

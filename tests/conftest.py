@@ -1,5 +1,5 @@
 import pytest
-from lambdora.main import load_std
+from lambdora.repl import load_std
 
 @pytest.fixture(autouse=True, scope="session")
 def load_stdlib_once():
