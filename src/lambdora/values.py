@@ -1,10 +1,14 @@
 """Runtime value representations used by the interpreter."""
 
-from .astmodule import Expr, Abstraction, Variable
 from dataclasses import dataclass
-from typing import Callable, Union, List
+from typing import Callable, List, Union
 
-Value = Union[int, str, bool, 'Closure', 'Builtin', 'Pair', 'Nil', 'Macro', 'Thunk', Expr]
+from .astmodule import Expr
+
+Value = Union[
+    int, str, bool, "Closure", "Builtin", "Pair", "Nil", "Macro", "Thunk", Expr
+]
+
 
 @dataclass
 class Closure:
@@ -12,35 +16,42 @@ class Closure:
     body: Expr
     env: dict[str, Value]
 
+
 @dataclass
 class Builtin:
     func: Callable[[Value], Value]
+
 
 @dataclass
 class Pair:
     head: Value
     tail: Value
 
+
 @dataclass
 class Macro:
     params: List[str]
     body: Expr
 
+
 @dataclass
 class Thunk:
     func: Callable[[], Value]
 
+
 class Nil:
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "nil"
 
+
 nil = Nil()
+
 
 def valueToString(val: Value) -> str:
     if isinstance(val, Closure):
         return f"<closure λ{val.param}. …>"
     elif isinstance(val, bool):
-        return 'true' if val else 'false'
+        return "true" if val else "false"
     elif isinstance(val, int):
         return str(val)
     elif isinstance(val, str):
@@ -50,7 +61,7 @@ def valueToString(val: Value) -> str:
     elif isinstance(val, Pair):
         # Print as (a b c)
         elems = []
-        p = val
+        p: Value = val
         while isinstance(p, Pair):
             elems.append(valueToString(p.head))
             p = p.tail
@@ -63,6 +74,7 @@ def valueToString(val: Value) -> str:
     elif isinstance(val, Expr):
         # Handle AST nodes as values (code as data)
         from .printer import lambPrint
+
         return lambPrint(val)
     else:
         return f"<unknown value: {val}>"

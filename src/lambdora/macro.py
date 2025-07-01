@@ -1,25 +1,41 @@
 """Macro substitution and expansion utilities."""
 
-from .astmodule import *
-from typing import Dict
+from typing import Dict, Optional
+
+from .astmodule import (
+    Abstraction,
+    Application,
+    DefineExpr,
+    DefMacroExpr,
+    Expr,
+    IfExpr,
+    QuasiQuoteExpr,
+    UnquoteExpr,
+    Variable,
+)
 from .values import Macro, Value
+
 
 def _qq_sub(tmpl: Expr, mapping: dict[str, Expr]) -> Expr:
     if isinstance(tmpl, UnquoteExpr):
         return UnquoteExpr(lambMacroSubstitute(tmpl.expr, mapping))
     if isinstance(tmpl, Application):
-        return Application(_qq_sub(tmpl.func, mapping),
-                           [_qq_sub(a, mapping) for a in tmpl.args])
+        return Application(
+            _qq_sub(tmpl.func, mapping), [_qq_sub(a, mapping) for a in tmpl.args]
+        )
     if isinstance(tmpl, Abstraction):
         return Abstraction(tmpl.param, _qq_sub(tmpl.body, mapping))
     if isinstance(tmpl, IfExpr):
-        return IfExpr(_qq_sub(tmpl.cond, mapping),
-                      _qq_sub(tmpl.then_branch, mapping),
-                      _qq_sub(tmpl.else_branch, mapping))
+        return IfExpr(
+            _qq_sub(tmpl.cond, mapping),
+            _qq_sub(tmpl.then_branch, mapping),
+            _qq_sub(tmpl.else_branch, mapping),
+        )
     # literals, vars, nested quasi-quotes stay untouched
     if isinstance(tmpl, QuasiQuoteExpr):
         return QuasiQuoteExpr(_qq_sub(tmpl.expr, mapping))
     return tmpl
+
 
 def lambMacroSubstitute(expr: Expr, mapping: dict[str, Expr]) -> Expr:
     if isinstance(expr, Variable):
@@ -28,26 +44,32 @@ def lambMacroSubstitute(expr: Expr, mapping: dict[str, Expr]) -> Expr:
     if isinstance(expr, QuasiQuoteExpr):
         return QuasiQuoteExpr(_qq_sub(expr.expr, mapping))
 
-    if isinstance(expr, UnquoteExpr):             # (still useful if ever top-level)
+    if isinstance(expr, UnquoteExpr):  # (still useful if ever top-level)
         return UnquoteExpr(lambMacroSubstitute(expr.expr, mapping))
 
     if isinstance(expr, Application):
-        return Application(lambMacroSubstitute(expr.func, mapping),
-                           [lambMacroSubstitute(a, mapping) for a in expr.args])
+        return Application(
+            lambMacroSubstitute(expr.func, mapping),
+            [lambMacroSubstitute(a, mapping) for a in expr.args],
+        )
     if isinstance(expr, Abstraction):
         return Abstraction(expr.param, lambMacroSubstitute(expr.body, mapping))
     if isinstance(expr, IfExpr):
-        return IfExpr(lambMacroSubstitute(expr.cond, mapping),
-                      lambMacroSubstitute(expr.then_branch, mapping),
-                      lambMacroSubstitute(expr.else_branch, mapping))
+        return IfExpr(
+            lambMacroSubstitute(expr.cond, mapping),
+            lambMacroSubstitute(expr.then_branch, mapping),
+            lambMacroSubstitute(expr.else_branch, mapping),
+        )
     if isinstance(expr, DefineExpr):
         return DefineExpr(expr.name, lambMacroSubstitute(expr.value, mapping))
     if isinstance(expr, DefMacroExpr):
-        return DefMacroExpr(expr.name, expr.params,
-                            lambMacroSubstitute(expr.body, mapping))
+        return DefMacroExpr(
+            expr.name, expr.params, lambMacroSubstitute(expr.body, mapping)
+        )
     return expr
 
-def lambMacroExpand(expr: Expr, env: Dict[str, Value]) -> Expr:
+
+def lambMacroExpand(expr: Expr, env: Dict[str, Value]) -> Optional[Expr]:
     """Expand macros in ``expr`` using definitions stored in ``env``."""
 
     # Handle defmacro
@@ -82,21 +104,24 @@ def lambMacroExpand(expr: Expr, env: Dict[str, Value]) -> Expr:
         return qqWalk(expr.expr, env)
     return expr
 
+
 def qqWalk(expr: Expr, env: Dict[str, Value]) -> Expr:
     """Process a QuasiQuoteExpr template, splicing the result of any UnquoteExprs."""
     if isinstance(expr, UnquoteExpr):
-        return lambMacroExpand(expr.expr, env)
+        expanded = lambMacroExpand(expr.expr, env)
+        return expanded if expanded is not None else expr.expr
 
     # Recurse structurally
     if isinstance(expr, Application):
-        return Application(qqWalk(expr.func, env),
-                           [qqWalk(a, env) for a in expr.args])
+        return Application(qqWalk(expr.func, env), [qqWalk(a, env) for a in expr.args])
     if isinstance(expr, Abstraction):
         return Abstraction(expr.param, qqWalk(expr.body, env))
     if isinstance(expr, IfExpr):
-        return IfExpr(qqWalk(expr.cond, env),
-                      qqWalk(expr.then_branch, env),
-                      qqWalk(expr.else_branch, env))
+        return IfExpr(
+            qqWalk(expr.cond, env),
+            qqWalk(expr.then_branch, env),
+            qqWalk(expr.else_branch, env),
+        )
     if isinstance(expr, QuasiQuoteExpr):
         return QuasiQuoteExpr(qqWalk(expr.expr, env))
     return expr

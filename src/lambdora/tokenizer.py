@@ -1,6 +1,5 @@
 """Tokenization utilities for Lambdora source code."""
 
-import re
 
 def lambTokenize(source: str) -> list[str]:
     """Return a list of tokens extracted from the given source string."""
@@ -8,8 +7,8 @@ def lambTokenize(source: str) -> list[str]:
 
     # Strip comments
     lines = source.splitlines()
-    clean_lines = [line.split(';', 1)[0] for line in lines]
-    source = ' '.join(clean_lines)
+    clean_lines = [line.split(";", 1)[0] for line in lines]
+    source = " ".join(clean_lines)
 
     i = 0
     while i < len(source):
@@ -19,15 +18,15 @@ def lambTokenize(source: str) -> list[str]:
             i += 1
             continue
 
-        if char in '().λ+-*/%=<>\',`':
+        if char in "().λ+-*/%=<>',`":
             tokens.append(char)
             i += 1
             continue
 
         # Identifiers (alpha or underscores)
-        if char.isalpha() or char == '_':
+        if char.isalpha() or char == "_":
             start = i
-            while i < len(source) and (source[i].isalnum() or source[i] == '_'):
+            while i < len(source) and (source[i].isalnum() or source[i] == "_"):
                 i += 1
             tokens.append(source[start:i])
             continue
@@ -54,5 +53,4 @@ def lambTokenize(source: str) -> list[str]:
 
         raise SyntaxError(f"Unexpected character: {char}")
 
-    
     return tokens
