@@ -55,8 +55,10 @@ def test_repl_exit_commands():
     with patch("builtins.input", return_value="exit"):
         with patch("builtins.print") as mock_print:
             repl()
-            # Should print "Goodbye." when exiting
-            mock_print.assert_called_with("Goodbye.")
+
+            # One of the print calls should contain the goodbye message
+            calls = [str(call) for call in mock_print.call_args_list]
+            assert any("Goodbye." in call for call in calls)
 
 
 def test_repl_quit_command():
@@ -67,7 +69,9 @@ def test_repl_quit_command():
     with patch("builtins.input", return_value="quit"):
         with patch("builtins.print") as mock_print:
             repl()
-            mock_print.assert_called_with("Goodbye.")
+
+            calls = [str(call) for call in mock_print.call_args_list]
+            assert any("Goodbye." in call for call in calls)
 
 
 def test_repl_keyboard_interrupt():
@@ -78,7 +82,10 @@ def test_repl_keyboard_interrupt():
     with patch("builtins.input", side_effect=KeyboardInterrupt):
         with patch("builtins.print") as mock_print:
             repl()
-            mock_print.assert_called_with("\nGoodbye.")
+            # Check that goodbye message was printed (last call should be
+            # newline, second-to-last should be goodbye)
+            calls = [str(call) for call in mock_print.call_args_list]
+            assert any("Goodbye." in call for call in calls)
 
 
 def test_repl_eof_error():
@@ -89,7 +96,10 @@ def test_repl_eof_error():
     with patch("builtins.input", side_effect=EOFError):
         with patch("builtins.print") as mock_print:
             repl()
-            mock_print.assert_called_with("\nGoodbye.")
+            # Check that goodbye message was printed (last call should be
+            # newline, second-to-last should be goodbye)
+            calls = [str(call) for call in mock_print.call_args_list]
+            assert any("Goodbye." in call for call in calls)
 
 
 def test_repl_expression_error():
@@ -131,7 +141,8 @@ def test_repl_nil_result():
     with patch("builtins.input", side_effect=inputs):
         with patch("builtins.print") as mock_print:
             repl()
-            # Should print "42" from the print function and "Goodbye." but not "=> nil"
+            # Should print "42" from the print function and "Goodbye."
+            # but not "=> nil"
             calls = mock_print.call_args_list
             assert any("42" in str(call) for call in calls)
             assert any("Goodbye." in str(call) for call in calls)

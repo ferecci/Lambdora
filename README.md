@@ -1,88 +1,77 @@
-# 🐑 Lambdora &nbsp; [![codecov](https://codecov.io/gh/ferecci/Lambdora/graph/badge.svg?token=ORV38HH7J7)](https://codecov.io/gh/ferecci/Lambdora)
+# 🐑 Lambdora
 
-**Lambdora** is a minimal functional programming language inspired by Lisp and lambda calculus, implemented in Python. It supports first-class functions, lexical closures, macros, tail-call optimization, and a simple REPL — all in fewer than 1000 lines of code.
+A minimal Lisp-inspired functional language implemented in ~1 kLOC of Python.
 
-> A tiny lambda-powered language with big functional features.
+[![codecov](https://codecov.io/gh/ferecci/Lambdora/graph/badge.svg?token=ORV38HH7J7)](https://codecov.io/gh/ferecci/Lambdora)
 
----
+## Features
 
-## ✨ Features
+- First-class lambdas & currying
+- Lexical closures (static scope)
+- Macro system (`defmacro`) for metaprogramming
+- Tail-call optimization (trampoline)
+- Built-in types: numbers, booleans, pairs/lists, `nil`
+- Lightweight functional standard library
+- Interactive REPL & script runner
 
-- First-class lambdas (`λx. ...`) and currying  
-- Lexical scoping with closures  
-- Built-in types: numbers, booleans, pairs/lists, nil  
-- Powerful macro system (`defmacro`)  
-- Tail-call optimization via trampoline  
-- Minimal standard library (`std.lamb`)  
-- REPL and file runner  
-- Testable and extensible structure
+## Quick Start
 
----
+Requirements: **Python ≥ 3.10**
 
-## 📦 Getting Started
-
-### ✅ Requirements
-- Python 3.10+
-
-### ▶️ Run the REPL
-
-```
-python -m main.py
+```bash
+# from repository root
+pip install -e .
+python -m lambdora.repl   # launch REPL
 ```
 
-### 📂 Run a program
+Run a program:
 
+```bash
+python -m lambdora.runner path/to/code.lamb
 ```
-python -m main.py examples/fizzbuzz.lamb
-```
 
----
-
-## 🧪 Example
+## Example
 
 ```lisp
-(define inc (λx. (+ x 1)))
+(define inc   (λx. (+ x 1)))
 (define twice (λf. (λx. (f (f x)))))
-((twice inc) 3)      ; => 5
+((twice inc) 3)        ; => 5
 
 (defmacro when (cond body)
   (if cond body nil))
-
-(when true (print "Hello, macros!")) ; => Hello, macros!
+(when true (print "hi")) ; => hi
 ```
 
----
+## Language Essentials
 
-## 📁 Project Structure
+Special forms   | `define` · `λ`/`lambda` · `if` · `quote` · `defmacro`
+--------------- | -----------------------------------------------------------------
+Arithmetic       | `+  -  *  /  =  <  >  <=  >=`
+Lists            | `cons` · `head` · `tail` · `isNil`
+Logic            | `and` · `or` · `not`
+
+The standard library (autoloaded) provides `map`, `filter`, `foldl`, `range`, `reverse`, tail-recursive `fact`/`fib`, and helper macros like `when`, `unless`, `cond`, `let`.
+
+## Directory Layout
 
 ```
-lambdora/
-├── tokenizer.py       # Lexer
-├── parser.py          # S-expression to AST
-├── astmodule.py       # AST node classes
-├── evaluator.py       # Core evaluator with TCO
-├── builtinsmodule.py  # Built-in functions and values
-├── macro.py           # Macro expansion logic
-├── values.py          # Runtime value representations
-├── printer.py         # Pretty-printer
-├── main.py            # REPL and file runner
-└── stdlib/std.lamb    # Standard library (loaded at launch)
+src/lambdora/
+  tokenizer.py       # lexer
+  parser.py          # S-expr → AST
+  evaluator.py       # evaluator with TCO
+  macro.py           # macros
+  builtinsmodule.py  # built-in functions
+  stdlib/std.lamb    # standard library
 ```
 
----
+## Contributing
 
-## 🛣️ Roadmap
+```bash
+# optional: create & activate a virtual environment first
+pip install -e .[dev]
+pytest               # run test-suite
+```
 
-- [x] Core language & REPL
-- [x] Macros
-- [x] Tail-call optimization
-- [x] `quote` special form
-- [ ] Macro hygiene
-- [ ] Range/loop helpers
-- [ ] LLVM backend (stretch goal)
+## License
 
----
-
-## ⚖️ License
-
-MIT License. Created by Felipe Tancredo (ferecci).
+MIT © Felipe Tancredo (ferecci)

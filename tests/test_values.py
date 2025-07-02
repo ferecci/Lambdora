@@ -49,3 +49,11 @@ def test_unknown_repr():
         pass
 
     assert "<unknown value:" in valueToString(Dummy())
+
+
+def test_value_to_string_expr():
+    """Ensure valueToString can print AST Expr values via lambPrint."""
+    from lambdora.astmodule import Variable
+
+    expr = Variable("x")
+    assert valueToString(expr) == "x"

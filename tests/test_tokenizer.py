@@ -1,3 +1,5 @@
+import pytest
+
 from lambdora.tokenizer import lambTokenize
 
 
@@ -34,3 +36,15 @@ def test_tokenize_edge_cases():
     # Test with trailing whitespace and edge cases
     tokens = lambTokenize("(+ 1 2)   ")
     assert tokens == ["(", "+", "1", "2", ")"]
+
+
+def test_tokenizer_unterminated_string():
+    """Ensure unterminated string literals raise SyntaxError."""
+    with pytest.raises(SyntaxError, match="Unterminated string literal"):
+        lambTokenize('"hello')
+
+
+def test_tokenizer_unexpected_char():
+    """Ensure unexpected characters raise SyntaxError."""
+    with pytest.raises(SyntaxError, match="Unexpected character: @"):
+        lambTokenize("@")

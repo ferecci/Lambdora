@@ -1,4 +1,4 @@
-"""Definitions of built-in functions and the initial environment."""
+"""Built-in functions and the initial environment."""
 
 from itertools import count
 from typing import Dict
@@ -10,11 +10,11 @@ def lambMakeTopEnv() -> dict[str, Value]:
     """Create the top-level environment with Lambdora built-ins."""
     env: Dict[str, Value] = {}
 
-    # Boolean literals
+    # Booleans
     env["true"] = True
     env["false"] = False
 
-    # Curried arithmetic operators
+    # Arithmetic (curried)
     def add(x: Value) -> Value:
         if not isinstance(x, int):
             raise TypeError("Expected integer")
@@ -48,7 +48,7 @@ def lambMakeTopEnv() -> dict[str, Value]:
 
         return Builtin(mul_inner)
 
-    # Integer division (rounds down)
+    # Integer division (floored)
     def div(x: Value) -> Value:
         if not isinstance(x, int):
             raise TypeError("Expected integer")
@@ -86,7 +86,7 @@ def lambMakeTopEnv() -> dict[str, Value]:
 
     env["="] = Builtin(eq)
 
-    # Less-than: the only inequality operator you need!
+    # Less-than
     def lt(x: Value) -> Value:
         if not isinstance(x, int):
             raise TypeError("Expected integer")
@@ -100,7 +100,7 @@ def lambMakeTopEnv() -> dict[str, Value]:
 
     env["<"] = Builtin(lt)
 
-    # Negation
+    # Logical negation
     def not_fn(x: Value) -> Value:
         if not isinstance(x, bool):
             raise TypeError("Expected boolean")
@@ -108,7 +108,7 @@ def lambMakeTopEnv() -> dict[str, Value]:
 
     env["not"] = Builtin(not_fn)
 
-    # Logical AND & OR
+    # Conjunction / disjunction
     def and_fn(x: Value) -> Value:
         if not isinstance(x, bool):
             raise TypeError("Expected boolean")
@@ -134,14 +134,14 @@ def lambMakeTopEnv() -> dict[str, Value]:
     env["and"] = Builtin(and_fn)
     env["or"] = Builtin(or_fn)
 
-    # Printing (always prints the pretty-printed value, returns nil)
+    # Printing (returns nil)
     def pr(x: Value) -> Value:
         print(valueToString(x))
         return nil
 
     env["print"] = Builtin(pr)
 
-    # List ADT
+    # Lists
     def cons(x: Value) -> Value:
         return Builtin(lambda y: Pair(x, y))
 
@@ -164,7 +164,7 @@ def lambMakeTopEnv() -> dict[str, Value]:
     env["isNil"] = Builtin(is_nil)
     env["nil"] = nil
 
-    # Macro hygiene
+    # Gensym for hygienic macros
     _gensym_counter = count()
 
     def gensym_fn(x: Value) -> Value:

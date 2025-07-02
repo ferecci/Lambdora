@@ -5,27 +5,27 @@ TEST_DIR = tests
 
 # Run all tests with coverage
 test:
-	pytest --cov=$(PROJECT) --cov-report=term --cov-report=html --cov-fail-under=85
+	$(PYTHON) -m pytest --cov=$(PROJECT) --cov-report=term --cov-report=html --cov-report=xml --cov-fail-under=85
 
 # Just run tests without coverage
 fasttest:
-	pytest -q $(TEST_DIR)
+	$(PYTHON) -m pytest -q $(TEST_DIR)
 
 # Generate coverage report (HTML)
 coverage:
-	pytest --cov=$(PROJECT) --cov-report=html
+	$(PYTHON) -m pytest --cov=$(PROJECT) --cov-report=html
 
-# Lint code (you can swap with flake8 or ruff)
+# Lint code
 lint:
-	black --check $(PROJECT) $(TEST_DIR)
+	$(PYTHON) -m ruff check --fix $(PROJECT) $(TEST_DIR)
 
 # Format code
 format:
-	black $(PROJECT) $(TEST_DIR)
+	$(PYTHON) -m black $(PROJECT) $(TEST_DIR)
 
-# Clean up coverage files and build artifacts
+# Clean up coverage files, build artifacts, and REPL history
 clean:
-	rm -rf .pytest_cache .coverage coverage.xml htmlcov __pycache__ */__pycache__ ruff_report.json
+	$(PYTHON) scripts/clean.py
 
 # Run REPL
 run:
@@ -35,4 +35,8 @@ run:
 run-file:
 	cd src && $(PYTHON) -m lambdora.runner
 
-.PHONY: test fasttest coverage lint format clean run run-file
+# Install dev dependencies (pytest, coverage, ruff, black)
+install-dev:
+	$(PYTHON) -m pip install -e .[dev]
+
+.PHONY: test fasttest coverage lint format clean run run-file install-dev

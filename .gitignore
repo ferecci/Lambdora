@@ -3,6 +3,9 @@ program.lamb
 roadmap.txt
 test.py
 
+# Lambdora REPL history
+.lambdora_history
+
 # Python
 __pycache__/
 *.py[cod]
