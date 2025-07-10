@@ -39,6 +39,24 @@
   (lambda f. (lambda acc. (lambda lst.
     (foldlHelper f acc lst)))))
 
+; === Higher-order helpers ===
+(define compose
+  (lambda f. (lambda g. (lambda x. (f (g x))))))
+
+; Right fold
+(define foldr
+  (lambda f. (lambda acc. (lambda lst.
+    (if (isNil lst)
+        acc
+        (f (head lst) (((foldr f) acc) (tail lst))))))))
+
+; List append
+(define append
+  (lambda xs. (lambda ys.
+    (if (isNil xs)
+        ys
+        (cons (head xs) ((append (tail xs)) ys))))))
+
 ; === Basic list operations ===
 (define reverse
   (lambda lst. ((foldl (lambda acc. (lambda x. (cons x acc))) nil) lst)))
