@@ -1,8 +1,8 @@
 """Interactive Lambdora REPL."""
 
+import atexit
 import os
 import readline
-import atexit
 from pathlib import Path
 
 from colorama import Fore, Style
@@ -10,6 +10,7 @@ from colorama import init as _colorama_init
 
 from .astmodule import Expr, QuasiQuoteExpr
 from .builtinsmodule import lambMakeTopEnv
+from .errors import LambError, format_lamb_error
 from .evaluator import evalQuasiquote, lambEval, trampoline
 from .macro import lambMacroExpand
 from .parser import lambParse, lambParseAll
@@ -43,7 +44,7 @@ def setup_readline() -> None:
 
 def colored_prompt() -> str:
     """Return the coloured prompt string."""
-    return f"{Fore.CYAN}λ{Style.RESET_ALL}> "
+    return f"{Fore.CYAN}lambda{Style.RESET_ALL}> "
 
 
 def print_error(message: str) -> None:
@@ -71,8 +72,8 @@ Available commands:
   
 Lambdora syntax:
   (+ 1 2)                - Function application
-  (λx. x)                - Lambda expression
-  (define f (λx. x))     - Define a function / variable
+  (lambda x. x)          - Lambda expression
+  (define f (lambda x. x)) - Define a function / variable
   (let x 1 (+ x 2))      - Let-binding
   (if cond then else)    - Conditional expression
   (defmacro m (x) x)     - Define a macro
@@ -150,8 +151,11 @@ def repl() -> None:
                         lambPrint(out) if isinstance(out, Expr) else valueToString(out)
                     )
                     print_result(result_str)
+            except LambError as err:
+                # Pretty-print Lambdora-specific errors
+                print_error(format_lamb_error(err))
             except Exception as e:
-                # Enhanced error reporting with error type
+                # Fallback for unexpected Python exceptions
                 error_type = type(e).__name__
                 print_error(f"{error_type}: {e}")
 

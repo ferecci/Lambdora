@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 from .builtinsmodule import lambMakeTopEnv
+from .errors import LambError, format_lamb_error
 from .evaluator import lambEval, trampoline
 from .macro import lambMacroExpand
 from .parser import lambParseAll
@@ -26,13 +27,16 @@ def load_std() -> None:
 def run_file(path: Path) -> None:
     load_std()
     tokens = lambTokenize(path.read_text(encoding="utf-8"))
-    for expr in lambParseAll(tokens):
-        exp = lambMacroExpand(expr, ENV)
-        if exp is None:
-            continue
-        out = trampoline(lambEval(exp, ENV, is_tail=True))
-        if out is not nil:
-            print(valueToString(out))
+    try:
+        for expr in lambParseAll(tokens):
+            exp = lambMacroExpand(expr, ENV)
+            if exp is None:
+                continue
+            out = trampoline(lambEval(exp, ENV, is_tail=True))
+            if out is not nil:
+                print(valueToString(out))
+    except LambError as err:
+        print(format_lamb_error(err))
 
 
 if __name__ == "__main__":

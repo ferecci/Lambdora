@@ -13,6 +13,7 @@ from .astmodule import (
     UnquoteExpr,
     Variable,
 )
+from .errors import EvalError
 from .values import Builtin, Closure, Thunk, Value, nil
 
 
@@ -23,7 +24,7 @@ def lambEval(expr: Expr, env: dict[str, Value], is_tail: bool = False) -> Value:
         if expr.name in env:
             return env[expr.name]
         else:
-            raise NameError(f"unbound variable: {expr.name}")
+            raise EvalError(f"unbound variable: {expr.name}")
 
     # Literals
     if isinstance(expr, Literal):
@@ -52,7 +53,7 @@ def lambEval(expr: Expr, env: dict[str, Value], is_tail: bool = False) -> Value:
     if isinstance(expr, IfExpr):
         cond = lambEval(expr.cond, env)
         if not isinstance(cond, bool):
-            raise TypeError("condition in 'if' must be a boolean")
+            raise EvalError("condition in 'if' must be a boolean")
         branch = expr.then_branch if cond else expr.else_branch
         return lambEval(branch, env, is_tail)
 
@@ -73,7 +74,7 @@ def lambEval(expr: Expr, env: dict[str, Value], is_tail: bool = False) -> Value:
     if isinstance(expr, QuoteExpr):
         return expr.value
 
-    raise TypeError(f"Unknown expression type: {expr}")
+    raise EvalError(f"Unknown expression type: {expr}")
 
 
 def trampoline(result: Value) -> Value:
@@ -110,7 +111,7 @@ def applyFunc(func_val: Value, args: list[Value], is_tail: bool = False) -> Valu
                 return builtin_result.func(nil)
             return builtin_result
         return builtin_result
-    raise TypeError("tried to apply a non-function value")
+    raise EvalError("tried to apply a non-function value")
 
 
 def evalQuasiquote(expr: Expr, env: dict[str, Value]) -> Expr:

@@ -12,17 +12,17 @@ def test_range_and_sum():
 
 
 def test_map_double():
-    runExpression("(define double (λx. (* 2 x)))")
+    runExpression("(define double (lambda x. (* 2 x)))")
     assert valueToString(runExpression("(map double (range 4))")) == "(0 2 4 6)"
 
 
 def test_filter_even():
-    runExpression("(define even (λx. (= 0 (% x 2))))")
+    runExpression("(define even (lambda x. (= 0 (% x 2))))")
     assert valueToString(runExpression("(filter even (range 6))")) == "(0 2 4)"
 
 
 def test_foldl_sum():
-    runExpression("(define add (λx. (λy. (+ x y))))")
+    runExpression("(define add (lambda x. (lambda y. (+ x y))))")
     assert runExpression("(foldl add 0 (range 4))") == 6
 
 
@@ -47,7 +47,7 @@ def test_fizzbuzz_sample():
     runExpression(
         """
     (define fizzbuzz
-      (λn.
+      (lambda n.
         (if (= (% n 15) 0) "FizzBuzz"
           (if (= (% n 3) 0) "Fizz"
             (if (= (% n 5) 0) "Buzz" n)))))

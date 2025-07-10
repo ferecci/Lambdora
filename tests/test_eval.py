@@ -29,7 +29,7 @@ def test_applying_non_function():
 
 def test_bad_lambda_syntax():
     with pytest.raises(SyntaxError):
-        runExpression("(λx x)")
+        runExpression("(lambda x x)")
 
 
 def test_incomplete_expression():
@@ -46,13 +46,13 @@ def test_deep_tail_fact():
     # Tail-recursive loop function
     runExpression(
         "(define loop "
-        "  (λn. (λacc. "
+        "  (lambda n. (lambda acc. "
         "    (if (= n 0) acc (loop (- n 1) (* acc n)))"
         "  ))"
         ")"
     )
     # Define fact in terms of loop
-    runExpression("(define fact " "  (λn. ((loop n) 1))" ")")
+    runExpression("(define fact " "  (lambda n. ((loop n) 1))" ")")
     result = runExpression("(fact 100)")
     assert isinstance(result, int)
     assert result > 0
@@ -71,7 +71,7 @@ def test_unknown_expression_type():
     unknown_expr = UnknownExpr()
 
     with pytest.raises(TypeError, match="Unknown expression type"):
-        lambEval(unknown_expr, env)
+        lambEval(unknown_expr, env)  # type: ignore[arg-type]
 
 
 def test_thunk_evaluation():
@@ -101,7 +101,7 @@ def test_quasiquote_nested():
 
 def test_quasiquote_with_abstraction():
     """Test quasiquote containing abstractions."""
-    result = runExpression("(quasiquote (λx. (+ x 1)))")
+    result = runExpression("(quasiquote (lambda x. (+ x 1)))")
     from lambdora.astmodule import Abstraction
 
     assert isinstance(result, Abstraction)

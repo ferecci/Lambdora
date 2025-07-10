@@ -16,6 +16,7 @@ from .astmodule import (
     UnquoteExpr,
     Variable,
 )
+from .errors import ParseError as SyntaxError
 
 
 def parseExpression(tokens: List[str], i: int) -> Tuple[Expr, int]:
@@ -37,14 +38,14 @@ def parseExpression(tokens: List[str], i: int) -> Tuple[Expr, int]:
         if i >= len(tokens):
             raise SyntaxError("Unexpected EOF after '('")
 
-        if tokens[i] == "λ":
+        if tokens[i] == "lambda":
             i += 1
             if i >= len(tokens):
-                raise SyntaxError("Unexpected EOF after λ")
+                raise SyntaxError("Unexpected EOF after lambda")
             if tokens[i] == ",":
                 i += 1
                 if i >= len(tokens):
-                    raise SyntaxError("Unexpected EOF after ',' in λ")
+                    raise SyntaxError("Unexpected EOF after ',' in lambda")
             param = tokens[i]
             i += 1
             if i >= len(tokens):

@@ -1,56 +1,113 @@
-"""Tokenization utilities for Lambdora source code."""
+"""Tokenizer for Lambdora source code (returns ``list[str]``)."""
+
+from __future__ import annotations
+
+from .errors import TokenizeError
 
 
-def lambTokenize(source: str) -> list[str]:
-    """Return a list of tokens extracted from the given source string."""
-    tokens = []
+def _line_at(src: str, line_no: int) -> str:
+    """Return the given 1-based line from *src*."""
 
-    # Strip comments
-    lines = source.splitlines()
-    clean_lines = [line.split(";", 1)[0] for line in lines]
-    source = " ".join(clean_lines)
+    return src.splitlines()[line_no - 1]
 
-    i = 0
+
+def lambTokenize(source: str, *, filename: str | None = None) -> list[str]:
+    """Tokenise *source*. *filename* is used only in error messages."""
+
+    tokens: list[str] = []
+    i = 0  # absolute index into *source*
+    line_no = 1
+    col_no = 1  # 1-based column index
+
     while i < len(source):
         char = source[i]
 
+        # Newline
+        if char == "\n":
+            i += 1
+            line_no += 1
+            col_no = 1
+            continue
+
+        # Skip ';' comments
+        if char == ";":
+            while i < len(source) and source[i] != "\n":
+                i += 1
+                col_no += 1
+            continue  # newline (if any) handled on next loop iteration
+
+        # Whitespace
         if char.isspace():
             i += 1
+            col_no += 1
             continue
 
-        if char in "().λ+-*/%=<>',`":
+        # Single-char tokens
+        if char in "().+-*/%=<>',`":
             tokens.append(char)
             i += 1
+            col_no += 1
             continue
 
-        # Identifiers (alpha or underscores)
+        # Identifiers
         if char.isalpha() or char == "_":
             start = i
             while i < len(source) and (source[i].isalnum() or source[i] == "_"):
                 i += 1
+                col_no += 1
             tokens.append(source[start:i])
             continue
 
-        # Numbers (integer literals)
+        # Integers
         if char.isdigit():
             start = i
             while i < len(source) and source[i].isdigit():
                 i += 1
+                col_no += 1
             tokens.append(source[start:i])
             continue
 
-        # String literals
+        # Strings
         if char == '"':
             i += 1
-            start = i
+            col_no += 1
+            start_idx = i
+            str_line, str_col = line_no, col_no
+
             while i < len(source) and source[i] != '"':
+                if source[i] == "\n":
+                    line_no += 1
+                    col_no = 0  # will be incremented at end of loop
                 i += 1
-            if i >= len(source):
-                raise SyntaxError("Unterminated string literal")
-            tokens.append('"' + source[start:i] + '"')
+                col_no += 1
+
+            if i >= len(source):  # reached EOF
+                snippet = _line_at(source, str_line)
+                raise TokenizeError(
+                    "Unterminated string literal",
+                    file=filename,
+                    line=str_line,
+                    column=str_col,
+                    snippet=snippet,
+                )
+
+            # Slice out the contents (excluding the quotes)
+            literal = source[start_idx:i]
+            tokens.append(f'"{literal}"')
+
+            # Skip the closing quote
             i += 1
+            col_no += 1
             continue
 
-        raise SyntaxError(f"Unexpected character: {char}")
+        # Unknown char
+        snippet = _line_at(source, line_no)
+        raise TokenizeError(
+            f"Unexpected character: {char}",
+            file=filename,
+            line=line_no,
+            column=col_no,
+            snippet=snippet,
+        )
 
     return tokens

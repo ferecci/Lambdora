@@ -1,28 +1,28 @@
 ; std.lamb — Lambdora Standard Library
 
 ; === Basic helpers ===
-(define id       (λx. x))
-(define const    (λx. (λy. x)))
+(define id       (lambda x. x))
+(define const    (lambda x. (lambda y. x)))
 
 ; === Predicates ===
-(define isZero   (λn. (= n 0)))
+(define isZero   (lambda n. (= n 0)))
 
 ; === Arithmetic shortcuts ===
-(define double   (λx. (+ x x)))
-(define triple   (λx. (+ x (double x))))
+(define double   (lambda x. (+ x x)))
+(define triple   (lambda x. (+ x (double x))))
 
 ; === Factorial (tail-recursive) ===
 (define factHelper
-  (λi. (λacc.
+  (lambda i. (lambda acc.
     (if (= i 0)
         acc
         (factHelper (- i 1) (* acc i))))))
 
-(define fact (λn. (factHelper n 1)))
+(define fact (lambda n. (factHelper n 1)))
 
 ; === Fibonacci ===
 (define fib
-  (λn.
+  (lambda n.
     (if (< n 2)
         n
         (+ (fib (- n 1))
@@ -30,40 +30,40 @@
 
 ; === Fold and variants ===
 (define foldlHelper
-  (λf. (λacc. (λlst.
+  (lambda f. (lambda acc. (lambda lst.
     (if (isNil lst)
         acc
         (foldlHelper f (f acc (head lst)) (tail lst)))))))
 
 (define foldl
-  (λf. (λacc. (λlst.
+  (lambda f. (lambda acc. (lambda lst.
     (foldlHelper f acc lst)))))
 
 ; === Basic list operations ===
 (define reverse
-  (λlst. ((foldl (λacc. (λx. (cons x acc))) nil) lst)))
+  (lambda lst. ((foldl (lambda acc. (lambda x. (cons x acc))) nil) lst)))
 
 ; === Range generation (tail-recursive) ===
 (define rangeHelper
-  (λi. (λacc.
+  (lambda i. (lambda acc.
     (if (< i 0)
         acc
         (rangeHelper (- i 1) (cons i acc))))))
 
 (define range
-  (λn.
+  (lambda n.
     (rangeHelper (- n 1) nil)))
 
 ; === List operations ===
 (define map
-  (λf. (λlst.
+  (lambda f. (lambda lst.
     (if (isNil lst)
         nil
         (cons (f (head lst))
               ((map f) (tail lst)))))))
 
 (define filter
-  (λpred. (λlst.
+  (lambda pred. (lambda lst.
     (if (isNil lst)
         nil
         (let h (head lst)
@@ -73,20 +73,20 @@
                 t)))))))
 
 (define length
-  (λlst. ((foldl (λn. (λ_. (+ n 1))) 0) lst)))
+  (lambda lst. ((foldl (lambda n. (lambda _. (+ n 1))) 0) lst)))
 
 (define sum
-  (λlst. ((foldl (λa. (λb. (+ a b))) 0) lst)))
+  (lambda lst. ((foldl (lambda a. (lambda b. (+ a b))) 0) lst)))
 
 ; === List generation ===
 (define ones
-  (λn.
-    ((foldl (λacc. (λ_. (cons 1 acc))) nil) (range n))))
+  (lambda n.
+    ((foldl (lambda acc. (lambda _. (cons 1 acc))) nil) (range n))))
 
 ; === Simple sums of ones ===
 (define sumOnes
-  (λn.
-    ((foldl (λa. (λb. (+ a b))) 0) (ones n))))
+  (lambda n.
+    ((foldl (lambda a. (lambda b. (+ a b))) 0) (ones n))))
 
 ; === Control-flow macros ===
 (defmacro when   (cond body)       `(if ,cond ,body nil))
@@ -98,9 +98,9 @@
 (defmacro or2  (a b)               `(if ,a true ,b))
 
 ; === Let-binding macros ===
-(defmacro let  (var val body)      `((λ ,var . ,body) ,val))
+(defmacro let  (var val body)      `((lambda ,var . ,body) ,val))
 (defmacro let2 (x y xval yval body)
-  `((λ ,x . ((λ ,y . ,body) ,yval)) ,xval))
+  `((lambda ,x . ((lambda ,y . ,body) ,yval)) ,xval))
 
 ; === Cond (two branches only for now) ===
 (defmacro cond (a b c d)           `(if ,a ,b (if ,c ,d nil)))

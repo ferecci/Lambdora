@@ -7,8 +7,8 @@ def test_value_to_string_nested_pair():
 
 
 def test_closure_repr():
-    c = Closure("x", None, {})
-    assert valueToString(c).startswith("<closure λx.")
+    c = Closure("x", None, {})  # type: ignore[arg-type]
+    assert valueToString(c).startswith("<closure lambda x.")
 
 
 def test_builtin_repr():
@@ -48,7 +48,7 @@ def test_unknown_repr():
     class Dummy:
         pass
 
-    assert "<unknown value:" in valueToString(Dummy())
+    assert "<unknown value:" in valueToString(Dummy())  # type: ignore[arg-type]
 
 
 def test_value_to_string_expr():

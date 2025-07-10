@@ -4,7 +4,7 @@ from lambdora.tokenizer import lambTokenize
 
 
 def test_simple_tokens():
-    assert lambTokenize("(λx. x)") == ["(", "λ", "x", ".", "x", ")"]
+    assert lambTokenize("(lambda x. x)") == ["(", "lambda", "x", ".", "x", ")"]
 
 
 def test_comments_are_ignored():

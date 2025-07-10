@@ -1,9 +1,22 @@
 """Built-in functions and the initial environment."""
 
 from itertools import count
-from typing import Dict
+from typing import Dict, cast
 
+from .errors import BuiltinError as TypeError
 from .values import Builtin, Pair, Value, nil, valueToString
+
+
+# Helper to differentiate ints from bools (bool is a subclass of int in Python)
+def _is_int(val: Value) -> bool:
+    return isinstance(val, int) and not isinstance(val, bool)
+
+
+# Convert Value to int after validation
+def _to_int(val: Value) -> int:
+    if not _is_int(val):
+        raise TypeError("Expected integer")
+    return cast(int, val)
 
 
 def lambMakeTopEnv() -> dict[str, Value]:
@@ -16,47 +29,39 @@ def lambMakeTopEnv() -> dict[str, Value]:
 
     # Arithmetic (curried)
     def add(x: Value) -> Value:
-        if not isinstance(x, int):
-            raise TypeError("Expected integer")
+        xi = _to_int(x)
 
         def add_inner(y: Value) -> Value:
-            if not isinstance(y, int):
-                raise TypeError("Expected integer")
-            return x + y
+            yi = _to_int(y)
+            return xi + yi
 
         return Builtin(add_inner)
 
     def sub(x: Value) -> Value:
-        if not isinstance(x, int):
-            raise TypeError("Expected integer")
+        xi = _to_int(x)
 
         def sub_inner(y: Value) -> Value:
-            if not isinstance(y, int):
-                raise TypeError("Expected integer")
-            return x - y
+            yi = _to_int(y)
+            return xi - yi
 
         return Builtin(sub_inner)
 
     def mul(x: Value) -> Value:
-        if not isinstance(x, int):
-            raise TypeError("Expected integer")
+        xi = _to_int(x)
 
         def mul_inner(y: Value) -> Value:
-            if not isinstance(y, int):
-                raise TypeError("Expected integer")
-            return x * y
+            yi = _to_int(y)
+            return xi * yi
 
         return Builtin(mul_inner)
 
     # Integer division (floored)
     def div(x: Value) -> Value:
-        if not isinstance(x, int):
-            raise TypeError("Expected integer")
+        xi = _to_int(x)
 
         def div_inner(y: Value) -> Value:
-            if not isinstance(y, int):
-                raise TypeError("Expected integer")
-            return x // y
+            yi = _to_int(y)
+            return xi // yi
 
         return Builtin(div_inner)
 
@@ -66,13 +71,11 @@ def lambMakeTopEnv() -> dict[str, Value]:
     env["/"] = Builtin(div)
 
     def mod(x: Value) -> Value:
-        if not isinstance(x, int):
-            raise TypeError("Expected integer")
+        xi = _to_int(x)
 
         def mod_inner(y: Value) -> Value:
-            if not isinstance(y, int):
-                raise TypeError("Expected integer")
-            return x % y
+            yi = _to_int(y)
+            return xi % yi
 
         return Builtin(mod_inner)
 
@@ -80,21 +83,23 @@ def lambMakeTopEnv() -> dict[str, Value]:
 
     # Equality
     def eq(x: Value) -> Value:
-        if not isinstance(x, int):
-            raise TypeError("Expected integer")
-        return Builtin(lambda y: x == y)
+        xi = _to_int(x)
+
+        def eq_inner(y: Value) -> Value:
+            yi = _to_int(y)
+            return xi == yi
+
+        return Builtin(eq_inner)
 
     env["="] = Builtin(eq)
 
     # Less-than
     def lt(x: Value) -> Value:
-        if not isinstance(x, int):
-            raise TypeError("Expected integer")
+        xi = _to_int(x)
 
         def lt_inner(y: Value) -> Value:
-            if not isinstance(y, int):
-                raise TypeError("Expected integer")
-            return x < y
+            yi = _to_int(y)
+            return xi < yi
 
         return Builtin(lt_inner)
 

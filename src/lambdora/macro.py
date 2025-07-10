@@ -13,6 +13,7 @@ from .astmodule import (
     UnquoteExpr,
     Variable,
 )
+from .errors import MacroExpansionError
 from .values import Macro, Value
 
 
@@ -81,6 +82,11 @@ def lambMacroExpand(expr: Expr, env: Dict[str, Value]) -> Optional[Expr]:
         macro = env.get(expr.func.name)
         if isinstance(macro, Macro):
             args = expr.args
+            if len(args) != len(macro.params):
+                raise MacroExpansionError(
+                    f"Macro '{expr.func.name}' expects {len(macro.params)} "
+                    f"args but got {len(args)}"
+                )
             mapping = dict(zip(macro.params, args))
             expanded = lambMacroSubstitute(macro.body, mapping)
             return lambMacroExpand(expanded, env)

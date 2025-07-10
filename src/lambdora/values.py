@@ -49,7 +49,7 @@ nil = Nil()
 
 def valueToString(val: Value) -> str:
     if isinstance(val, Closure):
-        return f"<closure λ{val.param}. …>"
+        return f"<closure lambda {val.param}. …>"
     elif isinstance(val, bool):
         return "true" if val else "false"
     elif isinstance(val, int):
