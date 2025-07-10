@@ -1,5 +1,5 @@
 # Basic settings
-PYTHON = python
+PYTHON = python3
 PROJECT = src/lambdora
 TEST_DIR = tests
 

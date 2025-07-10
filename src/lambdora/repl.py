@@ -2,6 +2,7 @@
 
 import os
 import readline
+import atexit
 from pathlib import Path
 
 from colorama import Fore, Style
@@ -25,20 +26,16 @@ ENV = lambMakeTopEnv()
 def setup_readline() -> None:
     """Set up line editing and history."""
 
-    history_file = os.path.expanduser("~/.lambdora_history")
+    history_file = os.path.join(os.path.dirname(__file__), ".lambdora_history")
 
-    # Load existing history, if any.
     try:
         if hasattr(readline, "read_history_file"):
             readline.read_history_file(history_file)
     except FileNotFoundError:
-        pass  # First run – no history yet.
+        pass
 
-    # Keep a reasonably long history and ensure it is saved on exit.
     if hasattr(readline, "set_history_length"):
         readline.set_history_length(1000)
-
-    import atexit
 
     if hasattr(readline, "write_history_file"):
         atexit.register(readline.write_history_file, history_file)
@@ -169,5 +166,6 @@ def repl() -> None:
 
 
 if __name__ == "__main__":
+    os.system("clear")
     setup_readline()
     repl()
