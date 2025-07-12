@@ -10,6 +10,7 @@ from .astmodule import (
     DefMacroExpr,
     Expr,
     IfExpr,
+    LetRec,
     Literal,
     QuasiQuoteExpr,
     QuoteExpr,
@@ -159,6 +160,45 @@ def parseExpression(tokens: List[str], i: int) -> Tuple[Expr, int]:
             if i >= len(tokens) or tokens[i] != ")":
                 raise SyntaxError("Expected ')' after quote")
             return QuoteExpr(quoted), i + 1
+
+        elif tokens[i] == "letrec":
+            i += 1
+            if i >= len(tokens):
+                raise SyntaxError("Unexpected EOF after letrec")
+            # Expect bindings list
+            if tokens[i] != "(":
+                raise SyntaxError("Expected '(' to start letrec bindings")
+            i += 1  # Skip '('
+            bindings: list[tuple[str, Expr]] = []
+            while i < len(tokens) and tokens[i] != ")":
+                if tokens[i] != "(":
+                    raise SyntaxError("Expected '(' to start a binding in letrec")
+                i += 1  # skip '('
+                if i >= len(tokens):
+                    raise SyntaxError("Unexpected EOF in letrec binding")
+                name = tokens[i]
+                # Ensure name is an identifier
+                if not re.match(r"^[a-zA-Z0-9_+\-*/=<>!?%_]+$", name):
+                    raise SyntaxError("Invalid identifier in letrec binding")
+                i += 1
+                if i >= len(tokens):
+                    raise SyntaxError("Unexpected EOF after letrec binding name")
+                value_expr, i = parseExpression(tokens, i)
+                if i >= len(tokens) or tokens[i] != ")":
+                    raise SyntaxError("Expected ')' to end letrec binding")
+                i += 1  # skip ')'
+                bindings.append((name, value_expr))
+            if i >= len(tokens):
+                raise SyntaxError("Unterminated letrec bindings list")
+            i += 1  # skip ')' closing bindings list
+            # Parse body expressions until closing ')'
+            body_exprs: list[Expr] = []
+            while i < len(tokens) and tokens[i] != ")":
+                body_e, i = parseExpression(tokens, i)
+                body_exprs.append(body_e)
+            if i >= len(tokens) or tokens[i] != ")":
+                raise SyntaxError("Expected ')' after letrec body")
+            return LetRec(bindings, body_exprs), i + 1
 
         else:
             func, i = parseExpression(tokens, i)

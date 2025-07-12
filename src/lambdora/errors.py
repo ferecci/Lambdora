@@ -64,6 +64,10 @@ class BuiltinError(LambError, TypeError):
     """Invalid usage of built-in functions."""
 
 
+class RecursionInitError(LambError, RuntimeError):
+    """Accessing a recursive binding before it is initialised."""
+
+
 __all__ = [
     "LambError",
     "TokenizeError",
@@ -71,6 +75,7 @@ __all__ = [
     "MacroExpansionError",
     "EvalError",
     "BuiltinError",
+    "RecursionInitError",
     "format_lamb_error",
 ]
 

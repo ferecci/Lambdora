@@ -1,5 +1,7 @@
 """Expression evaluation for Lambdora."""
 
+from typing import cast
+
 from .astmodule import (
     Abstraction,
     Application,
@@ -7,22 +9,36 @@ from .astmodule import (
     DefMacroExpr,
     Expr,
     IfExpr,
+    LetRec,
     Literal,
     QuasiQuoteExpr,
     QuoteExpr,
     UnquoteExpr,
     Variable,
 )
-from .errors import EvalError
+from .errors import EvalError, RecursionInitError
 from .values import Builtin, Closure, Thunk, Value, nil
 
 
+class _RecPlaceholder:  # noqa: D401 – sentinel class
+    def __repr__(self) -> str:  # pragma: no cover
+        return "<rec-placeholder>"
+
+
+_REC_PLACEHOLDER: Value = cast(Value, _RecPlaceholder())
+
+
 def lambEval(expr: Expr, env: dict[str, Value], is_tail: bool = False) -> Value:
-    """Evaluate ``expr`` in ``env`` with optional tail-call optimization."""
+    """Evaluate ``expr`` in ``env``."""
     # Variables
     if isinstance(expr, Variable):
         if expr.name in env:
-            return env[expr.name]
+            val = env[expr.name]
+            if val is _REC_PLACEHOLDER:
+                raise RecursionInitError(
+                    f"recursive binding '{expr.name}' accessed before initialisation"
+                )
+            return val
         else:
             raise EvalError(f"unbound variable: {expr.name}")
 
@@ -65,6 +81,33 @@ def lambEval(expr: Expr, env: dict[str, Value], is_tail: bool = False) -> Value:
             value.env[expr.name] = value
         env[expr.name] = value
         return f"<defined {expr.name}>"
+
+    # LetRec-expression
+    if isinstance(expr, LetRec):
+        new_env = env.copy()
+
+        # Pre-bind names to placeholder
+        for name, _ in expr.bindings:
+            new_env[name] = _REC_PLACEHOLDER
+
+        # Evaluate each binding RHS in the same env
+        for name, rhs in expr.bindings:
+            val = lambEval(rhs, new_env)
+            new_env[name] = val
+            if isinstance(val, Closure):
+                val.env[name] = val
+
+        # Patch mutually recursive closure envs
+        for item in new_env.values():
+            if isinstance(item, Closure):
+                for bind_name, _ in expr.bindings:
+                    item.env[bind_name] = new_env[bind_name]
+
+        result: Value = nil
+        for idx, body_expr in enumerate(expr.body):
+            is_last = idx == len(expr.body) - 1
+            result = lambEval(body_expr, new_env, is_tail and is_last)
+        return result
 
     # Quasiquote
     if isinstance(expr, QuasiQuoteExpr):

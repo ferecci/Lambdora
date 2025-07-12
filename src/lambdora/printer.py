@@ -4,6 +4,7 @@ from .astmodule import (
     Abstraction,
     Application,
     Expr,
+    LetRec,
     Literal,
     QuasiQuoteExpr,
     QuoteExpr,
@@ -28,5 +29,9 @@ def lambPrint(expr: Expr) -> str:
         return f",({lambPrint(expr.expr)})"
     elif isinstance(expr, QuoteExpr):
         return f"'({lambPrint(expr.value)})"
+    elif isinstance(expr, LetRec):
+        binds = " ".join([f"({name} {lambPrint(val)})" for name, val in expr.bindings])
+        bodies = " ".join([lambPrint(b) for b in expr.body])
+        return f"(letrec ({binds}) {bodies})"
     else:
         raise TypeError(f"Unknown expression type: {expr}")

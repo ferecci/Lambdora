@@ -11,22 +11,22 @@
 (define double   (lambda x. (+ x x)))
 (define triple   (lambda x. (+ x (double x))))
 
-; === Factorial (tail-recursive) ===
-(define factHelper
-  (lambda i. (lambda acc.
-    (if (= i 0)
-        acc
-        (factHelper (- i 1) (* acc i))))))
+; === Recursive definitions using letrec ===
+; Factorial
+(define fact
+  (letrec ((fact (lambda n.
+                   (if (= n 0)
+                       1
+                       (* n (fact (- n 1)))))))
+    fact))
 
-(define fact (lambda n. (factHelper n 1)))
-
-; === Fibonacci ===
+; Fibonacci
 (define fib
-  (lambda n.
-    (if (< n 2)
-        n
-        (+ (fib (- n 1))
-           (fib (- n 2))))))
+  (letrec ((fib (lambda n.
+                  (if (< n 2)
+                      n
+                      (+ (fib (- n 1)) (fib (- n 2)))))))
+    fib))
 
 ; === Fold and variants ===
 (define foldlHelper

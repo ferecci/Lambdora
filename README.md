@@ -4,7 +4,6 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-## Elevator Pitch
 A **1-kLOC Lisp-inspired functional language** written in modern Python. Lambdora showcases a full interpreter—lexer, parser, evaluator, and macro system in a compact codebase.
 
 ## Features

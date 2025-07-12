@@ -64,3 +64,9 @@ class QuasiQuoteExpr(Expr):
 @dataclass
 class UnquoteExpr(Expr):
     expr: Expr
+
+
+@dataclass
+class LetRec(Expr):
+    bindings: List[tuple[str, Expr]]
+    body: List[Expr]
