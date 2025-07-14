@@ -4,6 +4,7 @@ import atexit
 import os
 import readline
 from pathlib import Path
+from typing import Optional
 
 from colorama import Fore, Style
 from colorama import init as _colorama_init
@@ -31,15 +32,37 @@ def setup_readline() -> None:
 
     try:
         if hasattr(readline, "read_history_file"):
-            readline.read_history_file(history_file)
-    except FileNotFoundError:
+            try:
+                readline.read_history_file(history_file)
+            except (FileNotFoundError, AttributeError):
+                pass
+    except AttributeError:
         pass
 
-    if hasattr(readline, "set_history_length"):
-        readline.set_history_length(1000)
+    try:
+        if hasattr(readline, "set_history_length"):
+            try:
+                readline.set_history_length(1000)
+            except AttributeError:
+                pass
+    except AttributeError:
+        pass
 
-    if hasattr(readline, "write_history_file"):
-        atexit.register(readline.write_history_file, history_file)
+    try:
+        if hasattr(readline, "write_history_file"):
+            try:
+                if callable(readline.write_history_file):
+                    def safe_write_history() -> None:
+                        try:
+                            readline.write_history_file(history_file)
+                        except Exception:
+                            pass
+
+                    atexit.register(safe_write_history)
+            except (AttributeError, TypeError):
+                pass
+    except AttributeError:
+        pass
 
 
 def colored_prompt() -> str:
@@ -66,10 +89,11 @@ def print_help() -> None:
     """Show built-in help."""
     help_text = """
 Available commands:
-  exit, quit  - Exit the REPL
+  exit, quit  - Exit the REPL (also works in multiline mode)
   help        - Show this help message
   clear       - Clear the screen
-  
+  \b         - Remove the last line in multiline mode
+
 Lambdora syntax:
   (+ 1 2)                - Function application
   (lambda x. x)          - Lambda expression
@@ -80,17 +104,36 @@ Lambdora syntax:
   `(a ,b c)              - Quasiquote with unquote
   '(1 2 3)               - Quote shorthand (same as (quote …))
   ; this is a comment    - Semicolon starts a comment to EOL
-  
-Press Ctrl+C or Ctrl+D to exit.
+
+Multiline input:
+  If you enter an incomplete expression (e.g. unbalanced parentheses),
+  the REPL will prompt with '...'.
+  Type \b to remove the last line, or 'exit'/'quit' to cancel multiline input.
+  Press Ctrl+C or Ctrl+D to exit.
 """
     print(f"{Fore.CYAN}{help_text}{Style.RESET_ALL}")
 
 
-def load_std() -> None:
+def load_std(stdlib_path: Optional[Path] = None) -> None:
     """Load the standard library into the REPL environment."""
-    std = Path(__file__).with_suffix("").parent / "stdlib" / "std.lamb"
+    if stdlib_path is None:
+        std = Path(__file__).with_suffix("").parent / "stdlib" / "std.lamb"
+    else:
+        std = stdlib_path
+
     if not std.exists():
-        return
+        if stdlib_path is not None:
+            print(
+                f"{Fore.YELLOW}Warning: Custom stdlib file "
+                f"'{stdlib_path}' not found.{Style.RESET_ALL}"
+            )
+            print(
+                f"{Fore.YELLOW}Falling back to built-in standard "
+                f"library...{Style.RESET_ALL}"
+            )
+            std = Path(__file__).with_suffix("").parent / "stdlib" / "std.lamb"
+        if not std.exists():
+            return
     try:
         tokens = lambTokenize(std.read_text(encoding="utf-8"))
         for expr in lambParseAll(tokens):
@@ -99,7 +142,9 @@ def load_std() -> None:
                 trampoline(lambEval(exp, ENV, is_tail=True))
     except LambError as err:
         print_error(f"Error loading standard library: {format_lamb_error(err)}")
-        print(f"{Fore.YELLOW}REPL continuing without standard library...{Style.RESET_ALL}")
+        print(
+            f"{Fore.YELLOW}REPL continuing without standard library...{Style.RESET_ALL}"
+        )
 
 
 def run_expr(src: str) -> Value:
@@ -116,12 +161,14 @@ def run_expr(src: str) -> Value:
     return trampoline(lambEval(exp, ENV, is_tail=True))
 
 
-def repl() -> None:
+def repl(stdlib_path: Optional[Path] = None) -> None:
     """Start the interactive prompt."""
     setup_readline()
-    load_std()
+    load_std(stdlib_path)
 
     print(f"{Fore.MAGENTA}Lambdora REPL{Style.RESET_ALL}")
+    if stdlib_path:
+        print(f"{Fore.CYAN}Using custom stdlib: {stdlib_path}{Style.RESET_ALL}")
     print(
         f"Type {Fore.CYAN}'exit'{Style.RESET_ALL} or "
         f"{Fore.CYAN}'quit'{Style.RESET_ALL} to exit, "
@@ -150,6 +197,7 @@ def repl() -> None:
             prompt = colored_prompt()
             line = input(prompt)
             src_lines.append(line)
+            multiline_cancelled = False
             while _needs_more("\n".join(src_lines)) or src_lines[-1].endswith("\\"):
                 if src_lines[-1].endswith("\\"):
                     src_lines[-1] = src_lines[-1][:-1]
@@ -157,16 +205,21 @@ def repl() -> None:
 
                 if cont.strip().lower() in {"exit", "quit"}:
                     print("<multiline cancelled>")
-                    print_goodbye()
-                    return
+                    multiline_cancelled = True
+                    break
 
                 if cont.strip() == "\\b":
                     if len(src_lines) > 1:
                         removed = src_lines.pop()
                         print(f"<removed: {removed}>")
+                    else:
+                        print("<nothing to remove>")
                     continue
 
                 src_lines.append(cont)
+
+            if multiline_cancelled:
+                continue
 
             if not src_lines:
                 continue
@@ -198,14 +251,25 @@ def repl() -> None:
             except Exception as e:
                 error_type = type(e).__name__
                 print_error(f"{error_type}: {e}")
+                print(
+                    (
+                        f"{Fore.YELLOW}"
+                        "REPL exiting due to unexpected error..."
+                        f"{Style.RESET_ALL}"
+                    )
+                )
+                break
 
-        except (EOFError, KeyboardInterrupt):
+        except (EOFError, KeyboardInterrupt, StopIteration):
             print()
             print_goodbye()
             break
         except Exception as e:
             print_error(f"Unexpected error: {e}")
-            print(f"{Fore.YELLOW}REPL continuing...{Style.RESET_ALL}")
+            print(
+                f"{Fore.YELLOW}REPL exiting due to unexpected error...{Style.RESET_ALL}"
+            )
+            break
 
 
 def main() -> None:

@@ -31,7 +31,7 @@ class LambError(Exception):
         self.snippet = snippet.rstrip("\n") if snippet else None
         # Preserve original traceback while allowing pretty presentation
         if cause is not None:
-            self.__cause__ = cause  # noqa: SLF001 – intentional
+            self.__cause__ = cause
 
     def _loc(self) -> str:
         if self.line is None or self.column is None:
@@ -39,7 +39,7 @@ class LambError(Exception):
         location = f"{self.file or '<unknown>'}:{self.line}:{self.column}"
         return location
 
-    def __str__(self) -> str:  # noqa: DunderStr – tighten message
+    def __str__(self) -> str:
         loc = self._loc()
         return f"{loc + ': ' if loc else ''}{super().__str__()}"
 
@@ -102,4 +102,45 @@ def format_lamb_error(err: LambError) -> str:
             f"{Style.DIM}{caret}{Style.RESET_ALL}"
         )
 
-    return "".join(pretty_frames) + header + ("\n" + snippet if snippet else "")
+    # Add helpful suggestions based on error type
+    suggestion = ""
+    if isinstance(err, TokenizeError):
+        if "unexpected token" in str(err).lower():
+            suggestion = (
+                f"\n{Fore.YELLOW}Tip: Check for unmatched parentheses or "
+                f"invalid syntax.{Style.RESET_ALL}"
+            )
+        elif "unterminated string" in str(err).lower():
+            suggestion = (
+                f"\n{Fore.YELLOW}Tip: Make sure all strings are properly "
+                f"closed with quotes.{Style.RESET_ALL}"
+            )
+    elif isinstance(err, ParseError):
+        if "unexpected eof" in str(err).lower():
+            suggestion = (
+                f"\n{Fore.YELLOW}Tip: Check for missing closing "
+                f"parentheses.{Style.RESET_ALL}"
+            )
+        elif "unbound variable" in str(err).lower():
+            suggestion = (
+                f"\n{Fore.YELLOW}Tip: Make sure the variable is defined "
+                f"before use.{Style.RESET_ALL}"
+            )
+    elif isinstance(err, EvalError):
+        if "unbound variable" in str(err).lower():
+            suggestion = (
+                f"\n{Fore.YELLOW}Tip: Use (define var value) to define "
+                f"variables.{Style.RESET_ALL}"
+            )
+        elif "lambda syntax" in str(err).lower():
+            suggestion = (
+                f"\n{Fore.YELLOW}Tip: Lambda syntax is (lambda param . "
+                f"body){Style.RESET_ALL}"
+            )
+
+    return (
+        "".join(pretty_frames)
+        + header
+        + ("\n" + snippet if snippet else "")
+        + suggestion
+    )

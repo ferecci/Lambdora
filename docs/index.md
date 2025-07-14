@@ -61,7 +61,14 @@ lambdora --version           # Show version (e.g., "Lambdora 1.7.0")
 Start the interactive REPL environment:
 ```bash
 lambdora repl
+lambdora repl --stdlib-path /path/to/custom/std.lamb
 ```
+
+The REPL includes:
+- **Multi-line input** with automatic parenthesis balancing
+- **Backspace editing** (`\b` command) for correcting mistakes
+- **Custom stdlib support** via `--stdlib-path` option
+- **Command history** with arrow key navigation
 
 #### `lambdora run <file>`
 Execute a Lambdora script:

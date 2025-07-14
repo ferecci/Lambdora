@@ -18,6 +18,20 @@ A **1-kLOC Lisp-inspired functional language** written in modern Python. Lambdor
 - Interactive REPL & script runner
 - ~85% test coverage with pytest and Codecov integration
 
+## What's New in 1.7.1
+- **REPL multiline editing is more robust:**
+  - Use `\b` to remove the previous line in multiline mode.
+  - Type `exit` or `quit` at any point in multiline mode to cancel and return to the main prompt.
+  - The multiline prompt is now always `...` for clarity.
+- **Custom standard library path:**
+  - Use `--stdlib-path` to specify a custom standard library file for the REPL or runner:
+    ```bash
+    lambdora repl --stdlib-path=my_stdlib.lamb
+    lambdora run --stdlib-path=my_stdlib.lamb myscript.lamb
+    ```
+- **REPL help improvements:**
+  - The `help` command now documents all special commands, including `\b` and multiline exit/cancel.
+
 ## Quick Start
 ```bash
 # Install from PyPI

@@ -21,6 +21,20 @@ Type 'exit' or 'quit' to exit, 'help' for help.
 λ>
 ```
 
+### Custom Standard Library
+You can specify a custom standard library file when starting the REPL:
+
+```bash
+lambdora repl --stdlib-path /path/to/custom/std.lamb
+```
+
+This is useful for:
+- **Development**: Testing changes to the standard library
+- **Customization**: Using your own set of utility functions
+- **Isolation**: Working with different library versions
+
+If the custom stdlib file is not found, the REPL will fall back to the built-in standard library and show a warning message.
+
 ## REPL Features
 
 ### Multi-line Input
@@ -31,6 +45,22 @@ Lambdora's REPL lets you write expressions that span several lines.
 * **Edit / cancel** while in `...` mode
   * Type `\b` on its own line to delete the previous continuation line.
   * Type `exit` or `quit` to abandon the current multi-line entry and return to `λ>`.
+
+### Backspace Command (`\b`)
+When in multi-line mode, you can use the backspace command to edit your input:
+
+```lisp
+λ> (define long-function
+...   (lambda x.
+...     (+ x 1))
+... \b
+<removed: (+ x 1))
+...   (lambda x.
+...     (* x 2))
+... )
+```
+
+The `\b` command removes the last line you entered, allowing you to correct mistakes without starting over.
 
 Example:
 ```lisp

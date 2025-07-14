@@ -21,24 +21,33 @@ Examples:
   lambdora repl                    # Start interactive REPL
   lambdora run script.lamb         # Execute a Lambdora script
   lambdora --version               # Show version information
+  lambdora repl --stdlib-path /path/to/std.lamb  # Use custom stdlib
         """,
     )
-    
+
     parser.add_argument(
-        "--version",
-        action="version", 
-        version=f"Lambdora {__version__}"
+        "--version", action="version", version=f"Lambdora {__version__}"
     )
-    
+
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
-    
+
     # REPL subcommand
     repl_parser = subparsers.add_parser("repl", help="Start the interactive REPL")
-    
+    repl_parser.add_argument(
+        "--stdlib-path",
+        type=Path,
+        help="Path to custom standard library file (default: built-in std.lamb)",
+    )
+
     # Run subcommand
     run_parser = subparsers.add_parser("run", help="Execute a Lambdora script")
     run_parser.add_argument("file", help="Path to the .lamb file to execute")
-    
+    run_parser.add_argument(
+        "--stdlib-path",
+        type=Path,
+        help="Path to custom standard library file (default: built-in std.lamb)",
+    )
+
     return parser
 
 
@@ -46,19 +55,30 @@ def main(args: Optional[list[str]] = None) -> int:
     """Main CLI entry point."""
     parser = create_parser()
     parsed_args = parser.parse_args(args)
-    
+
     try:
         if parsed_args.command == "repl":
-            repl()
+            repl(stdlib_path=parsed_args.stdlib_path)
             return 0
         elif parsed_args.command == "run":
             file_path = Path(parsed_args.file)
             if not file_path.exists():
                 print(f"Error: File '{file_path}' not found.", file=sys.stderr)
+                print(
+                    "Tip: Make sure the file exists and the path is correct.",
+                    file=sys.stderr,
+                )
                 return 1
             if not file_path.suffix == ".lamb":
-                print(f"Warning: File '{file_path}' doesn't have .lamb extension.", file=sys.stderr)
-            run_file(file_path)
+                print(
+                    f"Warning: File '{file_path}' doesn't have .lamb extension.",
+                    file=sys.stderr,
+                )
+                print(
+                    f"Tip: Consider renaming to '{file_path.with_suffix('.lamb')}'",
+                    file=sys.stderr,
+                )
+            run_file(file_path, stdlib_path=parsed_args.stdlib_path)
             return 0
         else:
             # No subcommand provided, show help
@@ -73,4 +93,4 @@ def main(args: Optional[list[str]] = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main()) 
+    sys.exit(main())
