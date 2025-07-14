@@ -132,7 +132,7 @@ Lambdora features a hygienic macro system for metaprogramming:
 
 ; Usage
 (when (> 5 3) (print "Five is greater than three"))
-(let x 42 (print "x is " x))
+(let x 42 (print (++ "x is " (str x))))
 ```
 
 ### Macro Hygiene
@@ -224,14 +224,6 @@ Like Toki Pona's 120 words, Lambdora aims for **minimalism without loss of expre
 (define zero  (lambda f. (lambda x. x)))
 (define succ  (lambda n. (lambda f. (lambda x. (f ((n f) x))))))
 (define add   (lambda n. (lambda m. (lambda f. (lambda x. ((n f) ((m f) x)))))))
-```
-
-### Y-Combinator
-```lisp
-(define Y
-  (lambda f.
-    ((lambda x. (f (x x)))
-     (lambda x. (f (x x))))))
 ```
 
 ## Next Steps

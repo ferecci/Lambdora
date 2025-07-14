@@ -29,11 +29,9 @@ This document provides a comprehensive reference for Lambdora's built-in functio
 - `(isNil x)`: Check if nil/empty list
 
 ### I/O
-- `(print expr)`: Print expression (expects a single string)
+- `(print expr)`: Print expression (accepts any value, converts to string)
 - `(str expr)`: Convert to string
 - `(++ str1 str2)`: String concatenation
-
-**Note**: For printing multiple values, use string concatenation: `(print ("x = " ++ (str x)))`
 
 ### Type Checking
 - `(isNumber x)`: Check if number
@@ -43,7 +41,7 @@ This document provides a comprehensive reference for Lambdora's built-in functio
 - `(isFunction x)`: Check if function
 
 ### Macro System
-- `(gensym)`: Generate unique symbol for hygienic macros
+- `(gensym _)`: Generate unique symbol for hygienic macros
 - `(quote expr)`: Quote expression (prevent evaluation)
 - `(quasiquote expr)`: Quasiquote with unquote support
 - `(unquote expr)`: Unquote (only inside quasiquote)
