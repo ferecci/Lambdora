@@ -73,10 +73,6 @@ def lambMacroSubstitute(expr: Expr, mapping: dict[str, Expr]) -> Expr:
 def lambMacroExpand(expr: Expr, env: Dict[str, Value]) -> Optional[Expr]:
     """Expand macros in ``expr`` using definitions stored in ``env``."""
 
-    # Handle defmacro
-    if isinstance(expr, DefMacroExpr):
-        env[expr.name] = Macro(expr.params, expr.body)
-        return None
     # Expand application
     if isinstance(expr, Application) and isinstance(expr.func, Variable):
         macro = env.get(expr.func.name)
@@ -105,9 +101,32 @@ def lambMacroExpand(expr: Expr, env: Dict[str, Value]) -> Optional[Expr]:
         if new_body is None:
             new_body = expr.body
         return Abstraction(expr.param, new_body)
+    if isinstance(expr, DefineExpr):
+        new_value = lambMacroExpand(expr.value, env)
+        if new_value is None:
+            new_value = expr.value
+        return DefineExpr(expr.name, new_value)
+    if isinstance(expr, IfExpr):
+        new_cond = lambMacroExpand(expr.cond, env)
+        if new_cond is None:
+            new_cond = expr.cond
+        new_then = lambMacroExpand(expr.then_branch, env)
+        if new_then is None:
+            new_then = expr.then_branch
+        new_else = lambMacroExpand(expr.else_branch, env)
+        if new_else is None:
+            new_else = expr.else_branch
+        return IfExpr(new_cond, new_then, new_else)
     # Handle quasiquote that results from macro expansion
     if isinstance(expr, QuasiQuoteExpr):
         return qqWalk(expr.expr, env)
+
+    # Handle macro definition
+    if isinstance(expr, DefMacroExpr):
+        macro = Macro(expr.params, expr.body)
+        env[expr.name] = macro
+        return None
+
     return expr
 
 

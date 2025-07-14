@@ -44,7 +44,7 @@ def setup_readline() -> None:
 
 def colored_prompt() -> str:
     """Return the coloured prompt string."""
-    return f"{Fore.CYAN}lambda{Style.RESET_ALL}> "
+    return f"{Fore.CYAN}λ{Style.RESET_ALL}> "
 
 
 def print_error(message: str) -> None:
@@ -113,10 +113,9 @@ def run_expr(src: str) -> Value:
 
 def repl() -> None:
     """Start the interactive prompt."""
-    setup_readline()  # Initialise readline/history support
+    setup_readline()
     load_std()
 
-    # Print welcome message
     print(f"{Fore.MAGENTA}Lambdora REPL{Style.RESET_ALL}")
     print(
         f"Type {Fore.CYAN}'exit'{Style.RESET_ALL} or "
@@ -124,15 +123,54 @@ def repl() -> None:
         f"{Fore.CYAN}'help'{Style.RESET_ALL} for help."
     )
 
+    def _needs_more(src: str) -> bool:
+        """Return True if *src* likely needs more lines (unbalanced parens)."""
+        depth, in_str = 0, False
+        i = 0
+        while i < len(src):
+            ch = src[i]
+            if ch == '"':
+                in_str = not in_str
+            elif not in_str:
+                if ch == "(":
+                    depth += 1
+                elif ch == ")":
+                    depth -= 1
+            i += 1
+        return depth > 0
+
     while True:
         try:
-            line = input(colored_prompt())
+            src_lines: list[str] = []
+            prompt = colored_prompt()
+            line = input(prompt)
+            src_lines.append(line)
+            while _needs_more("\n".join(src_lines)) or src_lines[-1].endswith("\\"):
+                if src_lines[-1].endswith("\\"):
+                    src_lines[-1] = src_lines[-1][:-1]
+                cont = input("... ")
 
-            # Handle empty input
+                if cont.strip().lower() in {"exit", "quit"}:
+                    print("<multiline cancelled>")
+                    print_goodbye()
+                    return
+
+                if cont.strip() == "\\b":
+                    if len(src_lines) > 1:
+                        removed = src_lines.pop()
+                        print(f"<removed: {removed}>")
+                    continue
+
+                src_lines.append(cont)
+
+            if not src_lines:
+                continue
+
+            line = "\n".join(src_lines)
+
             if not line.strip():
                 continue
 
-            # Handle special commands
             if line.strip().lower() in {"exit", "quit"}:
                 print_goodbye()
                 break
@@ -143,7 +181,6 @@ def repl() -> None:
                 os.system("cls" if os.name == "nt" else "clear")
                 continue
 
-            # Evaluate expression with enhanced error recovery
             try:
                 out = run_expr(line)
                 if out is not nil:
@@ -152,19 +189,16 @@ def repl() -> None:
                     )
                     print_result(result_str)
             except LambError as err:
-                # Pretty-print Lambdora-specific errors
                 print_error(format_lamb_error(err))
             except Exception as e:
-                # Fallback for unexpected Python exceptions
                 error_type = type(e).__name__
                 print_error(f"{error_type}: {e}")
 
         except (EOFError, KeyboardInterrupt):
-            print()  # New line after ^C or ^D
+            print()
             print_goodbye()
             break
         except Exception as e:
-            # Catch-all for unexpected errors to keep REPL running
             print_error(f"Unexpected error: {e}")
             print(f"{Fore.YELLOW}REPL continuing...{Style.RESET_ALL}")
 

@@ -1,7 +1,9 @@
 [run]
-source = lambdora
+source = src/lambdora
 branch = True
 omit =
+    */docs/*
+    */examples/*
     */tests/*
     */test_*.py
     */test.py
@@ -10,7 +12,6 @@ omit =
     */venv/*
     */__pycache__/*
     */main.py
-    */printer.py   
 
 [report]
 exclude_lines =

@@ -80,6 +80,90 @@ def lambMakeTopEnv() -> dict[str, Value]:
         return Builtin(mod_inner)
 
     env["%"] = Builtin(mod)
+    env["mod"] = Builtin(mod)  # Alias for consistency
+
+    # Additional comparison operators
+    def le(x: Value) -> Value:
+        xi = _to_int(x)
+
+        def le_inner(y: Value) -> Value:
+            yi = _to_int(y)
+            return xi <= yi
+
+        return Builtin(le_inner)
+
+    def gt(x: Value) -> Value:
+        xi = _to_int(x)
+
+        def gt_inner(y: Value) -> Value:
+            yi = _to_int(y)
+            return xi > yi
+
+        return Builtin(gt_inner)
+
+    def ge(x: Value) -> Value:
+        xi = _to_int(x)
+
+        def ge_inner(y: Value) -> Value:
+            yi = _to_int(y)
+            return xi >= yi
+
+        return Builtin(ge_inner)
+
+    def ne(x: Value) -> Value:
+        xi = _to_int(x)
+
+        def ne_inner(y: Value) -> Value:
+            yi = _to_int(y)
+            return xi != yi
+
+        return Builtin(ne_inner)
+
+    env["<="] = Builtin(le)
+    env[">"] = Builtin(gt)
+    env[">="] = Builtin(ge)
+    env["!="] = Builtin(ne)
+
+    # String conversion
+    def str_fn(x: Value) -> Value:
+        return valueToString(x)
+
+    # String concatenation
+    def concat(x: Value) -> Value:
+        if not isinstance(x, str):
+            raise TypeError("Expected string")
+
+        def concat_inner(y: Value) -> Value:
+            if not isinstance(y, str):
+                raise TypeError("Expected string")
+            return x + y
+
+        return Builtin(concat_inner)
+
+    env["str"] = Builtin(str_fn)
+    env["++"] = Builtin(concat)  # String concatenation operator
+
+    # Type checking functions
+    def is_number(x: Value) -> Value:
+        return _is_int(x)
+
+    def is_boolean(x: Value) -> Value:
+        return isinstance(x, bool)
+
+    def is_string(x: Value) -> Value:
+        return isinstance(x, str)
+
+    def is_list(x: Value) -> Value:
+        return isinstance(x, Pair) or x is nil
+
+    def is_function(x: Value) -> Value:
+        return isinstance(x, Builtin)
+
+    env["isNumber"] = Builtin(is_number)
+    env["isBoolean"] = Builtin(is_boolean)
+    env["isString"] = Builtin(is_string)
+    env["isList"] = Builtin(is_list)
+    env["isFunction"] = Builtin(is_function)
 
     # Equality
     def eq(x: Value) -> Value:

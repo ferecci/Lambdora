@@ -17,11 +17,11 @@ coverage:
 
 # Lint code
 lint:
-	$(PYTHON) -m ruff check --fix $(PROJECT) $(TEST_DIR)
+	$(PYTHON) -m ruff check --fix $(PROJECT)
 
 # Format code
 format:
-	$(PYTHON) -m black $(PROJECT) $(TEST_DIR)
+	$(PYTHON) -m black $(PROJECT)
 
 # Clean up coverage files, build artifacts, and REPL history
 clean:

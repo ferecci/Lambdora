@@ -42,6 +42,15 @@ def lambTokenize(source: str, *, filename: str | None = None) -> list[str]:
             col_no += 1
             continue
 
+        # Multi-char operators (check before single-char tokens)
+        if i + 1 < len(source):
+            two_char = source[i : i + 2]
+            if two_char in ["++", "!=", "<=", ">="]:
+                tokens.append(two_char)
+                i += 2
+                col_no += 2
+                continue
+
         # Single-char tokens
         if char in "().+-*/%=<>',`":
             tokens.append(char)
@@ -52,7 +61,9 @@ def lambTokenize(source: str, *, filename: str | None = None) -> list[str]:
         # Identifiers
         if char.isalpha() or char == "_":
             start = i
-            while i < len(source) and (source[i].isalnum() or source[i] == "_"):
+            while i < len(source) and (
+                source[i].isalnum() or source[i] == "_" or source[i] == "-"
+            ):
                 i += 1
                 col_no += 1
             tokens.append(source[start:i])

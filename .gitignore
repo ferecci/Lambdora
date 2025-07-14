@@ -1,5 +1,6 @@
 # Project-specific files to ignore
 roadmap.txt
+test_examples.py
 
 # Lambdora REPL history
 .lambdora_history

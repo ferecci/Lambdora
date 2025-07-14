@@ -1,0 +1,24 @@
+; Recursion in Lambdora
+; Recursive functions using letrec
+
+; Factorial using letrec
+(define fact
+  (letrec ((fact (lambda n.
+                   (if (= n 0)
+                       1
+                       (* n (fact (- n 1)))))))
+    fact))
+
+; Fibonacci using letrec
+(define fib
+  (letrec ((fib (lambda n.
+                  (if (< n 2)
+                      n
+                      (+ (fib (- n 1)) (fib (- n 2)))))))
+    fib))
+
+(print "=== Recursion Examples ===")
+(print (++ "factorial(5) = " (str (fact 5))))
+(print (++ "factorial(6) = " (str (fact 6))))
+(print (++ "fibonacci(8) = " (str (fib 8))))
+(print (++ "fibonacci(10) = " (str (fib 10))))

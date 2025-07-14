@@ -1,0 +1,22 @@
+site_name: Lambdora
+site_description: Minimalist Lisp-inspired language
+repo_url: https://github.com/ferecci/Lambdora
+nav:
+  - Home: docs/index.md
+  - API Reference: docs/api.md
+  - Advanced Features: docs/advanced.md
+  - REPL Guide: docs/repl.md
+  - Contributing: CONTRIBUTING.md
+  - Examples: examples/
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.top
+    - content.code.copy
+    - content.code.annotate
+markdown_extensions:
+  - admonition
+  - codehilite
+  - toc:
+      permalink: true 

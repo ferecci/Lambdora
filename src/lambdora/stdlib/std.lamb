@@ -106,6 +106,10 @@
   (lambda n.
     ((foldl (lambda a. (lambda b. (+ a b))) 0) (ones n))))
 
+; === Let-binding macros ===
+(defmacro let  (var val body)
+  `((lambda ,var . ,body) ,val))
+
 ; === Control-flow macros ===
 (defmacro when   (cond body)       `(if ,cond ,body nil))
 (defmacro unless (cond body)       `(if (not ,cond) ,body nil))
@@ -115,10 +119,12 @@
 (defmacro and2 (a b)               `(if ,a ,b false))
 (defmacro or2  (a b)               `(if ,a true ,b))
 
-; === Let-binding macros ===
-(defmacro let  (var val body)      `((lambda ,var . ,body) ,val))
-(defmacro let2 (x y xval yval body)
-  `((lambda ,x . ((lambda ,y . ,body) ,yval)) ,xval))
-
-; === Cond (two branches only for now) ===
-(defmacro cond (a b c d)           `(if ,a ,b (if ,c ,d nil)))
+; === Cond macro (supports up to 4 branches + default) ===
+(defmacro cond (a1 b1 a2 b2 a3 b3 a4 b4 default)
+  `(if ,a1 ,b1
+    (if ,a2 ,b2
+      (if ,a3 ,b3
+        (if ,a4 ,b4
+          ,default)))))
+; Usage: (cond test1 result1 test2 result2 ... [default])
+; For more branches, nest conds or extend this macro.

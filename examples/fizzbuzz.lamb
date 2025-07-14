@@ -1,0 +1,24 @@
+; FizzBuzz in Lambdora
+; Prints numbers 1-20, but for multiples of 3 prints "Fizz",
+; multiples of 5 prints "Buzz", and multiples of both prints "FizzBuzz"
+
+(define fizzbuzz
+  (lambda n.
+    (if (= (mod n 15) 0) "FizzBuzz"
+        (if (= (mod n 3) 0) "Fizz"
+            (if (= (mod n 5) 0) "Buzz"
+                (str n))))))
+
+; Helper to print numbers 1 to n
+(define printRange
+  (lambda n.
+    (letrec ((loop (lambda i.
+                     (if (> i n)
+                         nil
+                         (let __temp (print (fizzbuzz i))
+                           (loop (+ i 1)))))))
+      (loop 1))))
+
+; Run FizzBuzz for numbers 1-20
+(print "FizzBuzz 1-20:")
+(printRange 20) 

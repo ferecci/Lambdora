@@ -9,7 +9,6 @@ from .astmodule import (
     DefineExpr,
     DefMacroExpr,
     Expr,
-    IfExpr,
     LetRec,
     Literal,
     QuasiQuoteExpr,
@@ -20,18 +19,20 @@ from .astmodule import (
 from .errors import ParseError as SyntaxError
 
 
-def parseExpression(tokens: List[str], i: int) -> Tuple[Expr, int]:
+def parseExpression(
+    tokens: List[str], i: int, in_quasiquote: bool = False
+) -> Tuple[Expr, int]:
     """Parse an expression from ``tokens`` starting at index ``i``."""
     if i >= len(tokens):
         raise SyntaxError("Unexpected EOF while parsing")
     token = tokens[i]
 
     if token == "`":  # Back-quote
-        expr, j = parseExpression(tokens, i + 1)
+        expr, j = parseExpression(tokens, i + 1, in_quasiquote=True)
         return QuasiQuoteExpr(expr), j
 
     if token == ",":  # Comma
-        expr, j = parseExpression(tokens, i + 1)
+        expr, j = parseExpression(tokens, i + 1, in_quasiquote=in_quasiquote)
         return UnquoteExpr(expr), j
 
     if token == "(":
@@ -39,179 +40,173 @@ def parseExpression(tokens: List[str], i: int) -> Tuple[Expr, int]:
         if i >= len(tokens):
             raise SyntaxError("Unexpected EOF after '('")
 
-        if tokens[i] == "lambda":
+        elif tokens[i] == "letrec":
             i += 1
             if i >= len(tokens):
-                raise SyntaxError("Unexpected EOF after lambda")
-            if tokens[i] == ",":
-                i += 1
-                if i >= len(tokens):
-                    raise SyntaxError("Unexpected EOF after ',' in lambda")
-            param = tokens[i]
-            i += 1
-            if i >= len(tokens):
-                raise SyntaxError("Unexpected EOF after lambda param")
-            if tokens[i] != ".":
-                raise SyntaxError("Expected '.' after lambda param")
-            i += 1
-            if i >= len(tokens):
-                raise SyntaxError("Unexpected EOF after lambda dot")
-            body, i = parseExpression(tokens, i)
-            if i >= len(tokens):
-                raise SyntaxError("Unexpected EOF after lambda body")
-            if tokens[i] != ")":
-                raise SyntaxError("Expected ')' after lambda body")
-            return Abstraction(param, body), i + 1
+                raise SyntaxError("Unexpected EOF after letrec")
 
-        elif tokens[i] == "let":
+            # Parse bindings - expect ((name1 value1) (name2 value2) ...)
+            if tokens[i] != "(":
+                raise SyntaxError("Expected '(' after letrec")
             i += 1
+
+            bindings = []
+            while i < len(tokens) and tokens[i] != ")":
+                if tokens[i] != "(":
+                    raise SyntaxError("Expected '(' for letrec binding")
+                i += 1
+
+                if i >= len(tokens):
+                    raise SyntaxError("Unexpected EOF in letrec binding")
+
+                # Parse binding name
+                name = tokens[i]
+                i += 1
+
+                if i >= len(tokens):
+                    raise SyntaxError("Unexpected EOF after letrec binding name")
+
+                # Parse binding value
+                value, i = parseExpression(tokens, i, in_quasiquote=in_quasiquote)
+
+                if i >= len(tokens):
+                    raise SyntaxError("Unexpected EOF after letrec binding value")
+
+                if tokens[i] != ")":
+                    raise SyntaxError("Expected ')' after letrec binding")
+                i += 1
+
+                bindings.append((name, value))
+
             if i >= len(tokens):
-                raise SyntaxError("Unexpected EOF after let")
-            var = tokens[i]
-            i += 1
-            if i >= len(tokens):
-                raise SyntaxError("Unexpected EOF after let var")
-            value_expr, i = parseExpression(tokens, i)
-            body_expr, i = parseExpression(tokens, i)
-            if i >= len(tokens):
-                raise SyntaxError("Unexpected EOF after let body")
+                raise SyntaxError("Unexpected EOF after letrec bindings")
+
             if tokens[i] != ")":
-                raise SyntaxError("Expected ')' after let expression")
-            return Application(Abstraction(var, body_expr), [value_expr]), i + 1
+                raise SyntaxError("Expected ')' after letrec bindings")
+            i += 1
+
+            # Parse body expressions
+            letrec_body = []
+            while i < len(tokens) and tokens[i] != ")":
+                body_expr, i = parseExpression(tokens, i, in_quasiquote=in_quasiquote)
+                letrec_body.append(body_expr)
+
+            if i >= len(tokens):
+                raise SyntaxError("Unexpected EOF after letrec body")
+
+            if tokens[i] != ")":
+                raise SyntaxError("Expected ')' after letrec body")
+
+            return LetRec(bindings, letrec_body), i + 1
 
         elif tokens[i] == "define":
             i += 1
-            if i + 1 >= len(tokens):
-                raise SyntaxError(
-                    "Unexpected EOF in define expression, expected name and value"
-                )
+            if i >= len(tokens):
+                raise SyntaxError("Unexpected EOF after define")
+
+            # Parse name
             name = tokens[i]
             i += 1
+
             if i >= len(tokens):
                 raise SyntaxError("Unexpected EOF after define name")
-            value_expr, i = parseExpression(tokens, i)
+
+            # Parse value
+            value, i = parseExpression(tokens, i, in_quasiquote=in_quasiquote)
+
             if i >= len(tokens):
                 raise SyntaxError("Unexpected EOF after define value")
-            if tokens[i] != ")":
-                raise SyntaxError("Expected ')' after define expression")
-            return DefineExpr(name, value_expr), i + 1
 
-        elif tokens[i] == "if":
-            i += 1
-            if i + 2 >= len(tokens):
-                raise SyntaxError(
-                    "Unexpected EOF in if expression, expected condition, "
-                    "then, and else branches"
-                )
-            cond, i = parseExpression(tokens, i)
-            then_b, i = parseExpression(tokens, i)
-            else_b, i = parseExpression(tokens, i)
-            if i >= len(tokens):
-                raise SyntaxError("Unexpected EOF after if expression")
             if tokens[i] != ")":
-                raise SyntaxError("Expected ')' after if expression")
-            return IfExpr(cond, then_b, else_b), i + 1
+                raise SyntaxError("Expected ')' after define value")
+
+            return DefineExpr(name, value), i + 1
 
         elif tokens[i] == "defmacro":
             i += 1
             if i >= len(tokens):
                 raise SyntaxError("Unexpected EOF after defmacro")
+
+            # Parse name
             name = tokens[i]
             i += 1
+
             if i >= len(tokens):
                 raise SyntaxError("Unexpected EOF after defmacro name")
-            # parse parameter list
+
+            # Parse parameters - expect (param1 param2 ...)
             if tokens[i] != "(":
                 raise SyntaxError("Expected '(' after defmacro name")
             i += 1
+
             params = []
             while i < len(tokens) and tokens[i] != ")":
                 params.append(tokens[i])
                 i += 1
+
             if i >= len(tokens):
-                raise SyntaxError("Unterminated parameter list in defmacro")
-            i += 1  # skip the closing ')'
+                raise SyntaxError("Unexpected EOF after defmacro params")
+
+            if tokens[i] != ")":
+                raise SyntaxError("Expected ')' after defmacro params")
+            i += 1
+
             if i >= len(tokens):
-                raise SyntaxError("Unexpected EOF after defmacro parameter list")
-            body, i = parseExpression(tokens, i)
+                raise SyntaxError("Unexpected EOF after defmacro params")
+
+            # Parse body (should be a single Expr)
+            macro_body, i = parseExpression(tokens, i, in_quasiquote=in_quasiquote)
+
             if i >= len(tokens):
                 raise SyntaxError("Unexpected EOF after defmacro body")
+
             if tokens[i] != ")":
                 raise SyntaxError("Expected ')' after defmacro body")
-            return DefMacroExpr(name, params, body), i + 1
 
-        elif tokens[i] == "quasiquote":
-            i += 1
-            body, i = parseExpression(tokens, i)
-            if i >= len(tokens) or tokens[i] != ")":
-                raise SyntaxError("Expected ')' after quasiquote")
-            return QuasiQuoteExpr(body), i + 1
+            return DefMacroExpr(name, params, macro_body), i + 1
 
-        elif tokens[i] == "unquote":
-            i += 1
-            body, i = parseExpression(tokens, i)
-            if i >= len(tokens) or tokens[i] != ")":
-                raise SyntaxError("Expected ')' after unquote")
-            return UnquoteExpr(body), i + 1
-
-        elif tokens[i] == "quote":
-            i += 1
-            quoted, i = parseExpression(tokens, i)
-            if i >= len(tokens) or tokens[i] != ")":
-                raise SyntaxError("Expected ')' after quote")
-            return QuoteExpr(quoted), i + 1
-
-        elif tokens[i] == "letrec":
+        elif tokens[i] == "lambda" and not in_quasiquote:
             i += 1
             if i >= len(tokens):
-                raise SyntaxError("Unexpected EOF after letrec")
-            # Expect bindings list
-            if tokens[i] != "(":
-                raise SyntaxError("Expected '(' to start letrec bindings")
-            i += 1  # Skip '('
-            bindings: list[tuple[str, Expr]] = []
-            while i < len(tokens) and tokens[i] != ")":
-                if tokens[i] != "(":
-                    raise SyntaxError("Expected '(' to start a binding in letrec")
-                i += 1  # skip '('
-                if i >= len(tokens):
-                    raise SyntaxError("Unexpected EOF in letrec binding")
-                name = tokens[i]
-                # Ensure name is an identifier
-                if not re.match(r"^[a-zA-Z0-9_+\-*/=<>!?%_]+$", name):
-                    raise SyntaxError("Invalid identifier in letrec binding")
-                i += 1
-                if i >= len(tokens):
-                    raise SyntaxError("Unexpected EOF after letrec binding name")
-                value_expr, i = parseExpression(tokens, i)
-                if i >= len(tokens) or tokens[i] != ")":
-                    raise SyntaxError("Expected ')' to end letrec binding")
-                i += 1  # skip ')'
-                bindings.append((name, value_expr))
-            if i >= len(tokens):
-                raise SyntaxError("Unterminated letrec bindings list")
-            i += 1  # skip ')' closing bindings list
-            # Parse body expressions until closing ')'
-            body_exprs: list[Expr] = []
-            while i < len(tokens) and tokens[i] != ")":
-                body_e, i = parseExpression(tokens, i)
-                body_exprs.append(body_e)
-            if i >= len(tokens) or tokens[i] != ")":
-                raise SyntaxError("Expected ')' after letrec body")
-            return LetRec(bindings, body_exprs), i + 1
+                raise SyntaxError("Unexpected EOF after lambda")
 
-        else:
-            func, i = parseExpression(tokens, i)
-            args = []
-            while i < len(tokens) and tokens[i] != ")":
-                arg, i = parseExpression(tokens, i)
-                args.append(arg)
+            # Parse parameter
+            param = tokens[i]
+            i += 1
+
             if i >= len(tokens):
-                raise SyntaxError("Unexpected EOF: missing ')'")
-            return Application(func, args), i + 1
+                raise SyntaxError("Unexpected EOF after lambda param")
+
+            # Expect dot
+            if tokens[i] != ".":
+                raise SyntaxError("Expected '.' after lambda param")
+            i += 1
+
+            if i >= len(tokens):
+                raise SyntaxError("Unexpected EOF after lambda dot")
+
+            # Parse body (should be a single Expr)
+            lambda_body, i = parseExpression(tokens, i, in_quasiquote=in_quasiquote)
+
+            if i >= len(tokens):
+                raise SyntaxError("Unexpected EOF after lambda body")
+
+            if tokens[i] != ")":
+                raise SyntaxError("Expected ')' after lambda body")
+
+            return Abstraction(param, lambda_body), i + 1
+
+        func, i = parseExpression(tokens, i, in_quasiquote=in_quasiquote)
+        args = []
+        while i < len(tokens) and tokens[i] != ")":
+            arg, i = parseExpression(tokens, i, in_quasiquote=in_quasiquote)
+            args.append(arg)
+        if i >= len(tokens):
+            raise SyntaxError("Unexpected EOF: missing ')'")
+        return Application(func, args), i + 1
 
     elif token == "'":
-        quoted, i = parseExpression(tokens, i + 1)
+        quoted, i = parseExpression(tokens, i + 1, in_quasiquote=in_quasiquote)
         return QuoteExpr(quoted), i
 
     elif token.isnumeric():
@@ -219,6 +214,9 @@ def parseExpression(tokens: List[str], i: int) -> Tuple[Expr, int]:
 
     elif token.startswith('"') and token.endswith('"'):
         return Literal(token[1:-1]), i + 1
+
+    elif token == ".":
+        return Literal("."), i + 1
 
     elif re.match(r"^[a-zA-Z0-9_+\-*/=<>!?%_]+$", token):
         return Variable(token), i + 1
@@ -229,7 +227,7 @@ def parseExpression(tokens: List[str], i: int) -> Tuple[Expr, int]:
 
 # Parse for a single expr
 def lambParse(tokens: List[str]) -> Expr:
-    expr, final_i = parseExpression(tokens, 0)
+    expr, final_i = parseExpression(tokens, 0, in_quasiquote=False)
     if final_i != len(tokens):
         raise SyntaxError("Unexpected extra tokens")
     return expr
@@ -240,6 +238,6 @@ def lambParseAll(tokens: List[str]) -> List[Expr]:
     exprs = []
     i = 0
     while i < len(tokens):
-        expr, i = parseExpression(tokens, i)
+        expr, i = parseExpression(tokens, i, in_quasiquote=False)
         exprs.append(expr)
     return exprs

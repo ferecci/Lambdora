@@ -1,0 +1,52 @@
+; Church Numerals in Lambdora
+; Functional programming with Church encodings
+
+; Church numeral constructors
+(define zero  (lambda f. (lambda x. x)))
+(define one   (lambda f. (lambda x. (f x))))
+(define two   (lambda f. (lambda x. (f (f x)))))
+
+; Successor function
+(define succ
+  (lambda n. (lambda f. (lambda x. (f ((n f) x))))))
+
+; Addition: n + m = λf.λx.(n f)((m f) x)
+(define add
+  (lambda n. (lambda m. (lambda f. (lambda x. ((n f) ((m f) x)))))))
+
+; Multiplication: n * m = λf.λx.n(m f) x
+(define mul
+  (lambda n. (lambda m. (lambda f. (lambda x. ((n (m f)) x))))))
+
+; Exponentiation: n^m = λf.λx.(m n) f x
+(define pow
+  (lambda n. (lambda m. (lambda f. (lambda x. (((m n) f) x))))))
+
+; Convert Church numeral to regular number
+(define churchToNum
+  (lambda n. ((n (lambda x. (+ x 1))) 0)))
+
+; Convert regular number to Church numeral
+(define numToChurch
+  (lambda n.
+    (if (= n 0)
+        zero
+        (succ (numToChurch (- n 1))))))
+
+; Test Church numerals
+(print "Church Numerals Examples:")
+(print (++ "zero = " (str (churchToNum zero))))
+(print (++ "one = " (str (churchToNum one))))
+(print (++ "two = " (str (churchToNum two))))
+
+(define three (succ two))
+(print (++ "three = " (str (churchToNum three))))
+
+(define four ((add two) two))
+(print (++ "two + two = " (str (churchToNum four))))
+
+(define six ((mul two) three))
+(print (++ "two * three = " (str (churchToNum six))))
+
+(define eight ((pow two) three))
+(print (++ "two ^ three = " (str (churchToNum eight)))) 

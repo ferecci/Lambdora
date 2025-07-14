@@ -1,0 +1,59 @@
+; Macro Examples in Lambdora
+; Hygienic macro system examples
+
+; === Basic control flow macros ===
+(defmacro when   (cond body)       `(if ,cond ,body nil))
+(defmacro unless (cond body)       `(if (not ,cond) ,body nil))
+(defmacro begin  (a b)             `(let __ignore ,a ,b))
+
+; === Short-circuit logic ===
+(defmacro and2 (a b)               `(if ,a ,b false))
+(defmacro or2  (a b)               `(if ,a true ,b))
+
+; === Let-binding macros ===
+(defmacro let  (var val body)      `((lambda ,var . ,body) ,val))
+
+; === Cond macros (fixed arity versions) ===
+(defmacro cond2 (a b c d)           `(if ,a ,b (if ,c ,d nil)))
+(defmacro cond3 (a b c d e f)       `(if ,a ,b (if ,c ,d (if ,e ,f nil))))
+(defmacro cond4 (a b c d e f g h)   `(if ,a ,b (if ,c ,d (if ,e ,f (if ,g ,h nil)))))
+
+; === Test the macros ===
+(print "=== Macro Examples ===")
+
+; Test when/unless
+(print "Testing when/unless:")
+(when true (print "when works!"))
+(unless false (print "unless works!"))
+
+; Test short-circuit logic
+(print "Testing short-circuit logic:")
+(print (++ "and2 works: " (and2 true "yes")))
+(print (++ "or2 works: " (or2 false "fallback")))
+
+; Test let bindings
+(print "Testing let bindings:")
+(let x 5 (print (++ "x = " (str x))))
+(let x 1 (let y 2 (print (++ (++ "x = " (str x)) (++ ", y = " (str y))))))
+
+; Test cond2
+(print "Testing cond2:")
+(print (cond2 (= 1 2) "one equals two"
+              true    "default case"))
+
+; Test cond3
+(print "Testing cond3:")
+(print (cond3 (= 1 2) "one equals two"
+              (= 2 3) "two equals three"
+              true    "default case"))
+
+; Test simple recursion
+(print "Testing simple recursion:")
+(define factorial
+  (lambda n.
+    (if (= n 0)
+        1
+        (* n (factorial (- n 1))))))
+(print (++ "5! = " (str (factorial 5))))
+
+(print "=== Done ===") 

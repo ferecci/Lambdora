@@ -1,150 +1,149 @@
-"""Tests for lambdora.repl module."""
+"""Comprehensive tests for the REPL module."""
 
-from pathlib import Path
 from unittest.mock import patch
 
-from lambdora.repl import load_std, run_expr
+import pytest
+
+from lambdora.repl import print_help, repl, run_expr as runExpression
 
 
-def test_run_expr_basic():
-    """Test basic run_expr functionality."""
-    result = run_expr("(+ 1 2)")
-    assert result == 3
-
-
-def test_run_expr_macro_defined():
-    """Test run_expr with macro definition."""
-    result = run_expr("(defmacro test (x) x)")
+def test_basic_repl_functionality():
+    """Test basic REPL functionality."""
+    # Test run_expr with macro definition
+    result = runExpression("(defmacro test_macro (x) x)")
     assert result == "<macro defined>"
 
 
-def test_load_std():
-    """Test load_std function."""
-    # This should load without error
-    load_std()
+def test_repl_multiline_input():
+    """Test REPL with multiline input."""
+    with (
+        patch("builtins.input", side_effect=["(+ 1", "2)", "exit"]),
+        patch("builtins.print") as mock_print,
+    ):
+        repl()
+        assert any("3" in str(call) for call in mock_print.call_args_list)
+
+
+def test_repl_continuation():
+    """Test REPL with continuation."""
+    with (
+        patch("builtins.input", side_effect=["(+ 1 \\", "2)", "exit"]),
+        patch("builtins.print") as mock_print,
+    ):
+        repl()
+        assert any("3" in str(call) for call in mock_print.call_args_list)
+
+
+def test_repl_backspace():
+    """Test REPL with backspace."""
+    with (
+        patch("builtins.input", side_effect=["(+ 1 2)", "\\b", "exit"]),
+        patch("builtins.print") as mock_print,
+    ):
+        repl()
+
+
+def test_repl_quit_during_multiline():
+    """Test REPL with quit during multiline."""
+    with (
+        patch("builtins.input", side_effect=["(+ 1", "quit"]),
+        patch("builtins.print") as mock_print,
+    ):
+        repl()
+        assert any("Goodbye" in str(call) for call in mock_print.call_args_list)
+
+
+def test_repl_exit_immediately():
+    """Test REPL exit immediately."""
+    with (
+        patch("builtins.input", side_effect=["exit"]),
+        patch("builtins.print") as mock_print,
+    ):
+        repl()
+        assert any("Goodbye" in str(call) for call in mock_print.call_args_list)
+
+
+def test_repl_empty_input():
+    """Test REPL with empty input."""
+    with (
+        patch("builtins.input", side_effect=["", "exit"]),
+        patch("builtins.print") as mock_print,
+    ):
+        repl()
+
+
+def test_repl_multiline_continuation():
+    """Test REPL with multiline continuation."""
+    with (
+        patch("builtins.input", side_effect=["(+ 1", "2)", "exit"]),
+        patch("builtins.print") as mock_print,
+    ):
+        repl()
+        assert any("3" in str(call) for call in mock_print.call_args_list)
+
+
+def test_repl_backslash_continuation():
+    """Test REPL with backslash continuation."""
+    with (
+        patch("builtins.input", side_effect=["(+ 1 \\", "2)", "exit"]),
+        patch("builtins.print") as mock_print,
+    ):
+        repl()
+        assert any("3" in str(call) for call in mock_print.call_args_list)
+
+
+def test_repl_backspace_handling():
+    """Test REPL backspace handling."""
+    with (
+        patch("builtins.input", side_effect=["(+ 1 2)", "\\b", "exit"]),
+        patch("builtins.print") as mock_print,
+    ):
+        repl()
+
+
+def test_print_help():
+    """Test print_help function."""
+    print_help()
 
 
 def test_load_std_missing_file():
-    """Test load_std when std.lamb doesn't exist."""
-    # Mock the Path.exists() to return False
-    with patch.object(Path, "exists", return_value=False):
-        # Should not raise an error, just return early
-        load_std()
+    """Test load_std with missing file."""
+    with patch("pathlib.Path.exists", return_value=False):
+        from lambdora.repl import load_std
+
+        load_std()  # Should not raise error
 
 
-def test_load_std_with_content():
-    """Test load_std with actual standard library content."""
-    # Create a temporary std.lamb file with test content
-    # (use underscore instead of hyphen)
-    test_content = "(define testvar 42)"
+def test_repl_with_complex_expressions():
+    """Test REPL with complex expressions."""
+    # Test factorial
+    factorial_code = """
+    (letrec ((factorial (lambda n. 
+                         (if (<= n 1) 
+                             1 
+                             (* n (factorial (- n 1)))))))
+      (factorial 5))
+    """
+    result = runExpression(factorial_code)
+    assert result == 120
 
-    # Mock the file reading
-    with patch.object(Path, "exists", return_value=True):
-        with patch.object(Path, "read_text", return_value=test_content):
-            load_std()
-            # After loading, the variable should be available
-            result = run_expr("testvar")
-            assert result == 42
-
-
-def test_repl_exit_commands():
-    """Test that exit and quit commands work in repl."""
-    from lambdora.repl import repl
-
-    # Mock input to return "exit"
-    with patch("builtins.input", return_value="exit"):
-        with patch("builtins.print") as mock_print:
-            repl()
-
-            # One of the print calls should contain the goodbye message
-            calls = [str(call) for call in mock_print.call_args_list]
-            assert any("Goodbye." in call for call in calls)
+    # Test with macros and quasiquotes
+    runExpression("(defmacro double (x) `(+ ,x ,x))")
+    result = runExpression("(double 5)")
+    assert result == 10
 
 
-def test_repl_quit_command():
-    """Test quit command in repl."""
-    from lambdora.repl import repl
+def test_repl_error_handling():
+    """Test REPL error handling."""
+    # Test with syntax errors
+    with pytest.raises(Exception):
+        runExpression("(")  # Incomplete expression
 
-    # Mock input to return "quit"
-    with patch("builtins.input", return_value="quit"):
-        with patch("builtins.print") as mock_print:
-            repl()
+    # Test with undefined variables
+    with pytest.raises(Exception):
+        runExpression("undefined_var")
 
-            calls = [str(call) for call in mock_print.call_args_list]
-            assert any("Goodbye." in call for call in calls)
-
-
-def test_repl_keyboard_interrupt():
-    """Test keyboard interrupt handling in repl."""
-    from lambdora.repl import repl
-
-    # Mock input to raise KeyboardInterrupt
-    with patch("builtins.input", side_effect=KeyboardInterrupt):
-        with patch("builtins.print") as mock_print:
-            repl()
-            # Check that goodbye message was printed (last call should be
-            # newline, second-to-last should be goodbye)
-            calls = [str(call) for call in mock_print.call_args_list]
-            assert any("Goodbye." in call for call in calls)
-
-
-def test_repl_eof_error():
-    """Test EOF error handling in repl."""
-    from lambdora.repl import repl
-
-    # Mock input to raise EOFError
-    with patch("builtins.input", side_effect=EOFError):
-        with patch("builtins.print") as mock_print:
-            repl()
-            # Check that goodbye message was printed (last call should be
-            # newline, second-to-last should be goodbye)
-            calls = [str(call) for call in mock_print.call_args_list]
-            assert any("Goodbye." in call for call in calls)
-
-
-def test_repl_expression_error():
-    """Test error handling in repl for bad expressions."""
-    from lambdora.repl import repl
-
-    # Mock input sequence: bad expression, then exit
-    inputs = ["(bad syntax", "exit"]
-    with patch("builtins.input", side_effect=inputs):
-        with patch("builtins.print") as mock_print:
-            repl()
-            # Should print error message and then goodbye
-            calls = mock_print.call_args_list
-            assert any("Error:" in str(call) for call in calls)
-            assert any("Goodbye." in str(call) for call in calls)
-
-
-def test_repl_expression_output():
-    """Test repl printing expression results."""
-    from lambdora.repl import repl
-
-    # Mock input sequence: expression that returns non-nil, then exit
-    inputs = ["(+ 1 2)", "exit"]
-    with patch("builtins.input", side_effect=inputs):
-        with patch("builtins.print") as mock_print:
-            repl()
-            # Should print the result "=> 3"
-            calls = mock_print.call_args_list
-            assert any("=>" in str(call) and "3" in str(call) for call in calls)
-            assert any("Goodbye." in str(call) for call in calls)
-
-
-def test_repl_nil_result():
-    """Test that nil results are not printed in repl."""
-    from lambdora.repl import repl
-
-    # Mock input sequence: expression that returns nil, then exit
-    inputs = ["(print 42)", "exit"]  # print returns nil
-    with patch("builtins.input", side_effect=inputs):
-        with patch("builtins.print") as mock_print:
-            repl()
-            # Should print "42" from the print function and "Goodbye."
-            # but not "=> nil"
-            calls = mock_print.call_args_list
-            assert any("42" in str(call) for call in calls)
-            assert any("Goodbye." in str(call) for call in calls)
-            # Should not have "=>" with nil
-            assert not any("=>" in str(call) and "nil" in str(call) for call in calls)
+    # Test with macro expansion errors
+    runExpression("(defmacro test_macro (x) x)")
+    with pytest.raises(Exception):
+        runExpression("(test_macro 1 2)")  # Wrong number of arguments

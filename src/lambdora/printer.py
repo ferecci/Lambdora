@@ -3,7 +3,10 @@
 from .astmodule import (
     Abstraction,
     Application,
+    DefineExpr,
+    DefMacroExpr,
     Expr,
+    IfExpr,
     LetRec,
     Literal,
     QuasiQuoteExpr,
@@ -33,5 +36,15 @@ def lambPrint(expr: Expr) -> str:
         binds = " ".join([f"({name} {lambPrint(val)})" for name, val in expr.bindings])
         bodies = " ".join([lambPrint(b) for b in expr.body])
         return f"(letrec ({binds}) {bodies})"
+    elif isinstance(expr, IfExpr):
+        cond = lambPrint(expr.cond)
+        then_branch = lambPrint(expr.then_branch)
+        else_branch = lambPrint(expr.else_branch)
+        return f"(if {cond} {then_branch} {else_branch})"
+    elif isinstance(expr, DefineExpr):
+        return f"(define {expr.name} {lambPrint(expr.value)})"
+    elif isinstance(expr, DefMacroExpr):
+        params = " ".join(expr.params)
+        return f"(defmacro {expr.name} ({params}) {lambPrint(expr.body)})"
     else:
         raise TypeError(f"Unknown expression type: {expr}")
