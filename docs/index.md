@@ -15,19 +15,76 @@ Like Toki Pona, Lambdora embraces the principle that **good is simple**. The lan
 
 ### Installation
 ```bash
+# Install from PyPI
+pip install lambdora
+
+# OR install from source
 git clone https://github.com/ferecci/Lambdora.git
 cd Lambdora
 pip install -e .
+# OR
+make install
 ```
 
-### Interactive REPL
+### Command Line Interface
+```bash
+# Interactive REPL
+lambdora repl
+
+# Run a script
+lambdora run examples/fizzbuzz.lamb
+
+# Check version and help
+lambdora --version
+lambdora --help
+```
+
+### Legacy Commands (still supported)
 ```bash
 python -m lambdora.repl
+python -m lambdora.runner examples/fizzbuzz.lamb
 ```
 
-### Running Scripts
+## Command Line Interface
+
+Lambdora provides a modern CLI with helpful commands and options:
+
+### Global Options
 ```bash
-python -m lambdora.runner examples/fizzbuzz.lamb
+lambdora --help              # Show help message
+lambdora --version           # Show version (e.g., "Lambdora 1.7.0")
+```
+
+### Commands
+
+#### `lambdora repl`
+Start the interactive REPL environment:
+```bash
+lambdora repl
+```
+
+#### `lambdora run <file>`
+Execute a Lambdora script:
+```bash
+lambdora run examples/fizzbuzz.lamb
+lambdora run my_script.lamb
+```
+
+The runner will:
+- Automatically load the standard library
+- Execute the script line by line
+- Print any non-nil results
+- Show helpful error messages with file locations
+
+### Error Handling
+
+The CLI provides clear error messages:
+```bash
+$ lambdora run missing.lamb
+Error: File 'missing.lamb' not found.
+
+$ lambdora run script.txt
+Warning: File 'script.txt' doesn't have .lamb extension.
 ```
 
 ## Language Overview

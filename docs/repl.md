@@ -4,6 +4,12 @@ Welcome to the Lambdora REPL (Read-Eval-Print Loop)! This guide covers the inter
 
 ## Starting the REPL
 
+**New CLI command:**
+```bash
+lambdora repl
+```
+
+**Legacy command (still supported):**
 ```bash
 python -m lambdora.repl
 ```

@@ -87,14 +87,19 @@ Press Ctrl+C or Ctrl+D to exit.
 
 
 def load_std() -> None:
+    """Load the standard library into the REPL environment."""
     std = Path(__file__).with_suffix("").parent / "stdlib" / "std.lamb"
     if not std.exists():
         return
-    tokens = lambTokenize(std.read_text(encoding="utf-8"))
-    for expr in lambParseAll(tokens):
-        exp = lambMacroExpand(expr, ENV)
-        if exp is not None:
-            trampoline(lambEval(exp, ENV, is_tail=True))
+    try:
+        tokens = lambTokenize(std.read_text(encoding="utf-8"))
+        for expr in lambParseAll(tokens):
+            exp = lambMacroExpand(expr, ENV)
+            if exp is not None:
+                trampoline(lambEval(exp, ENV, is_tail=True))
+    except LambError as err:
+        print_error(f"Error loading standard library: {format_lamb_error(err)}")
+        print(f"{Fore.YELLOW}REPL continuing without standard library...{Style.RESET_ALL}")
 
 
 def run_expr(src: str) -> Value:
@@ -203,7 +208,13 @@ def repl() -> None:
             print(f"{Fore.YELLOW}REPL continuing...{Style.RESET_ALL}")
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Legacy main function for backward compatibility."""
+    print("Note: Use 'lambdora repl' for the new CLI interface")
     os.system("clear")
     setup_readline()
     repl()
+
+
+if __name__ == "__main__":
+    main()

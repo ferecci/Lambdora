@@ -20,16 +20,29 @@ A **1-kLOC Lisp-inspired functional language** written in modern Python. Lambdor
 
 ## Quick Start
 ```bash
-# clone repository
-$ git clone https://github.com/ferecci/Lambdora.git && cd Lambdora
+# Install from PyPI
+$ pip install lambdora
 
-# install (editable) with runtime deps only
+# OR install from source
+$ git clone https://github.com/ferecci/Lambdora.git && cd Lambdora
 $ pip install -e .
+# OR
+$ make install
 
 # launch REPL
-$ python -m lambdora.repl
+$ lambdora repl
 
 # run a script
+$ lambdora run examples/fizzbuzz.lamb
+
+# check version and help
+$ lambdora --version
+$ lambdora --help
+```
+
+**Legacy commands still work:**
+```bash
+$ python -m lambdora.repl
 $ python -m lambdora.runner examples/fizzbuzz.lamb
 ```
 

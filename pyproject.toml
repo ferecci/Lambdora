@@ -4,12 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lambdora"
-version = "0.2.0"
+version = "1.7.0"
 description = "A minimalist Lisp-inspired language"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [{name = "ferecci"}]
+
+[project.scripts]
+lambdora = "lambdora.__main__:main"
 
 [tool.black]
 line-length = 88

@@ -27,6 +27,10 @@ format:
 clean:
 	$(PYTHON) scripts/clean.py
 
+# Install package in editable mode
+install:
+	$(PYTHON) -m pip install -e .
+
 # Run REPL
 run:
 	cd src && $(PYTHON) -m lambdora.repl
@@ -39,4 +43,4 @@ run-file:
 install-dev:
 	$(PYTHON) -m pip install -e .[dev]
 
-.PHONY: test fasttest coverage lint format clean run run-file install-dev
+.PHONY: test fasttest coverage lint format clean install run run-file install-dev
