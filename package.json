@@ -1,0 +1,17 @@
+{
+  "name": "lambdora-web",
+  "version": "1.0.0",
+  "description": "Web-based REPL for Lambdora programming language",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 8000",
+    "build": "echo 'No build step needed for static site'",
+    "deploy": "echo 'Deploy to GitHub Pages or similar'"
+  },
+  "keywords": ["lisp", "repl", "programming-language", "web"],
+  "author": "ferecci",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+} 

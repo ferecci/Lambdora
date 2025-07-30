@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lambdora Web REPL</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/commonlisp/commonlisp.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐑 Lambdora Web REPL</h1>
+            <p>A Lisp-inspired functional language in your browser</p>
+        </header>
+
+        <div class="repl-container">
+            <div class="input-section">
+                <div class="toolbar">
+                    <button id="run-btn" class="btn primary">▶ Run</button>
+                    <button id="clear-btn" class="btn secondary">🗑 Clear</button>
+                    <select id="examples-select" class="btn secondary">
+                        <option value="">Load Example</option>
+                        <option value="hello">Hello World</option>
+                        <option value="fizzbuzz">FizzBuzz</option>
+                        <option value="church">Church Numerals</option>
+                        <option value="macros">Macro Examples</option>
+                    </select>
+                    <input type="file" id="file-upload" accept=".lamb" style="display: none;">
+                    <button id="upload-btn" class="btn secondary">📁 Upload .lamb</button>
+                </div>
+                <textarea id="code-editor" placeholder="Enter your Lambdora code here..."></textarea>
+            </div>
+
+            <div class="output-section">
+                <div class="output-header">
+                    <h3>Output</h3>
+                    <button id="clear-output-btn" class="btn small">Clear</button>
+                </div>
+                <div id="output" class="output-content"></div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-card">
+                <h3>Quick Start</h3>
+                <p>Try these examples to get started:</p>
+                <ul>
+                    <li><code>(print "Hello, World!")</code></li>
+                    <li><code>(define inc (lambda x. (+ x 1)))</code></li>
+                    <li><code>((lambda x. (* x x)) 5)</code></li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h3>Features</h3>
+                <ul>
+                    <li>First-class functions with currying</li>
+                    <li>Lexical closures</li>
+                    <li>Hygienic macro system</li>
+                    <li>Tail-call optimization</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading" class="loading">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Loading Lambdora...</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 

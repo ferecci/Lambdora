@@ -1,0 +1,130 @@
+; std.lamb — Lambdora Standard Library
+
+; === Basic helpers ===
+(define id       (lambda x. x))
+(define const    (lambda x. (lambda y. x)))
+
+; === Predicates ===
+(define isZero   (lambda n. (= n 0)))
+
+; === Arithmetic shortcuts ===
+(define double   (lambda x. (+ x x)))
+(define triple   (lambda x. (+ x (double x))))
+
+; === Recursive definitions using letrec ===
+; Factorial
+(define fact
+  (letrec ((fact (lambda n.
+                   (if (= n 0)
+                       1
+                       (* n (fact (- n 1)))))))
+    fact))
+
+; Fibonacci
+(define fib
+  (letrec ((fib (lambda n.
+                  (if (< n 2)
+                      n
+                      (+ (fib (- n 1)) (fib (- n 2)))))))
+    fib))
+
+; === Fold and variants ===
+(define foldlHelper
+  (lambda f. (lambda acc. (lambda lst.
+    (if (isNil lst)
+        acc
+        (foldlHelper f (f acc (head lst)) (tail lst)))))))
+
+(define foldl
+  (lambda f. (lambda acc. (lambda lst.
+    (foldlHelper f acc lst)))))
+
+; === Higher-order helpers ===
+(define compose
+  (lambda f. (lambda g. (lambda x. (f (g x))))))
+
+; Right fold
+(define foldr
+  (lambda f. (lambda acc. (lambda lst.
+    (if (isNil lst)
+        acc
+        (f (head lst) (((foldr f) acc) (tail lst))))))))
+
+; List append
+(define append
+  (lambda xs. (lambda ys.
+    (if (isNil xs)
+        ys
+        (cons (head xs) ((append (tail xs)) ys))))))
+
+; === Basic list operations ===
+(define reverse
+  (lambda lst. ((foldl (lambda acc. (lambda x. (cons x acc))) nil) lst)))
+
+; === Range generation (tail-recursive) ===
+(define rangeHelper
+  (lambda i. (lambda acc.
+    (if (< i 0)
+        acc
+        (rangeHelper (- i 1) (cons i acc))))))
+
+(define range
+  (lambda n.
+    (rangeHelper (- n 1) nil)))
+
+; === List operations ===
+(define map
+  (lambda f. (lambda lst.
+    (if (isNil lst)
+        nil
+        (cons (f (head lst))
+              ((map f) (tail lst)))))))
+
+(define filter
+  (lambda pred. (lambda lst.
+    (if (isNil lst)
+        nil
+        (let h (head lst)
+          (let t ((filter pred) (tail lst))
+            (if (pred h)
+                (cons h t)
+                t)))))))
+
+(define length
+  (lambda lst. ((foldl (lambda n. (lambda _. (+ n 1))) 0) lst)))
+
+(define sum
+  (lambda lst. ((foldl (lambda a. (lambda b. (+ a b))) 0) lst)))
+
+; === List generation ===
+(define ones
+  (lambda n.
+    ((foldl (lambda acc. (lambda _. (cons 1 acc))) nil) (range n))))
+
+; === Simple sums of ones ===
+(define sumOnes
+  (lambda n.
+    ((foldl (lambda a. (lambda b. (+ a b))) 0) (ones n))))
+
+; === Let-binding macros ===
+(defmacro let  (var val body)
+  `((lambda ,var . ,body) ,val))
+
+; === Control-flow macros ===
+(defmacro when   (cond body)       `(if ,cond ,body nil))
+(defmacro unless (cond body)       `(if (not ,cond) ,body nil))
+(defmacro begin  (a b)             `(let __ignore ,a ,b))
+
+; === Short-circuit logic ===
+(defmacro and2 (a b)               `(if ,a ,b false))
+(defmacro or2  (a b)               `(if ,a true ,b))
+
+; === Cond macro (supports up to 4 branches + default) ===
+(defmacro cond (a1 b1 a2 b2 a3 b3 a4 b4 default)
+  `(if ,a1 ,b1
+    (if ,a2 ,b2
+      (if ,a3 ,b3
+        (if ,a4 ,b4
+          ,default)))))
+; Usage: (cond test1 result1 test2 result2 ... [default])
+; For more branches, nest conds or extend this macro.
